@@ -1,13 +1,13 @@
-package com.ydkulks.CafeCraft;
+package dev.ydkulks.TheDrip;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CafeCraftApplication {
+public class TheDripApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CafeCraftApplication.class, args);
+		SpringApplication.run(TheDripApplication.class, args);
 	}
 
 }

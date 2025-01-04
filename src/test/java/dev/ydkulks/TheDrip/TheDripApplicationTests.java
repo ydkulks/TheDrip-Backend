@@ -1,10 +1,10 @@
-package com.ydkulks.CafeCraft;
+package dev.ydkulks.TheDrip;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CafeCraftApplicationTests {
+class TheDripApplicationTests {
 
 	@Test
 	void contextLoads() {
