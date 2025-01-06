@@ -1,5 +1,5 @@
-# TheDrip
-Ecommerce website using ReactJS for front-end and Spring boot for back-end
+# TheDrip - ザ・ドリップ
+Lowkey Anime, High-Key Fashion
 
 ## Problem Statement - E-Commerce Web Application
 The problem statement requires you to create a full-stack e-commerce web application using React for the front-end, Spring Boot for the back-end, and any RDBMS (Relational Database Management System) for data persistence.

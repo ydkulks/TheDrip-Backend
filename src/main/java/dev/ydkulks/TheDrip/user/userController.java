@@ -9,7 +9,7 @@ public class userController {
   // NOTE: Signup page
   @GetMapping("/signup")
   public String signup() {
-    return "Signup Page";
+    return "Signup";
   }
 
   // NOTE: Login page
