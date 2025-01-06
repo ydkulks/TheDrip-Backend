@@ -2,8 +2,8 @@
 **Lowkey Anime, High-Key Fashion**
 
 ## TODO
-- [x] REST
-- [ ] CRUD
+- [x] Basic REST
+- [X] Basic CRUD
 - [ ] Authorization
 - [ ] Authentication
 
@@ -58,10 +58,10 @@ This can be commited to version controle.
 ## MVC Project Architecture
 ```txt
 com.domain.ProjectName/
-    Controller(API)             : Handle HTTP requests
     Model                       : Convert JSON to Object and vise versa
+    View(Bean)                  : Renders view?
+    Controller(API)             : Handle HTTP requests
     Service(Repository/Query)   : DBMS data manipulation
-    Bean                        : Structure?
 ```
 
 ## 🌐 Useful links
@@ -69,6 +69,7 @@ com.domain.ProjectName/
 - [REST API tutorial](https://www.springboottutorial.com/spring-boot-crud-rest-service-with-jpa-hibernate)
 - [Annotations](https://www.geeksforgeeks.org/top-spring-boot-annotations/)
 - [Architectural patterns](https://dev.to/chiragagg5k/architecture-patterns-for-beginners-mvc-mvp-and-mvvm-2pe7?ref=dailydev)
+- [Spring MVC](https://www.marcobehler.com/guides/spring-mvc)
 - [MySQL connection](https://www.geeksforgeeks.org/how-to-work-with-databases-using-spring-boot/)
 - [H2 connection](https://spring.io/guides/gs/accessing-data-jpa)
 - [JPA Entities](https://www.baeldung.com/jpa-entities)

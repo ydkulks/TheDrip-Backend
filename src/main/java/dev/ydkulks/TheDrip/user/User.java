@@ -1,33 +1,27 @@
 package dev.ydkulks.TheDrip.user;
 
-// import jakarta.persistence.Column;
-// import jakarta.persistence.Entity;
-// import jakarta.persistence.GeneratedValue;
-// import jakarta.persistence.GenerationType;
-// import jakarta.persistence.Id;
-// import jakarta.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /*
  * public class User {
- *   // Fields, Getters and Setters
+ *   // Fields, Constructors, Getters and Setters
  * }
  */
-// @Entity
-// @Table(name = "USERS")
+@Entity
+@Table(name = "USERS")
 public class User {
   // Fields
-  // @Id
-  // @GeneratedValue(strategy = GenerationType.AUTO)
+  @Id
   private Long id;
 
-  // @Column(name = "FIRST_NAME", length = 20, nullable = false, unique = false, updatable = true)
   private String firstName;
 
-  // @Column(name = "LAST_NAME", length = 20, nullable = false, unique = false, updatable = true)
   private String lastName;
 
-  // Empty Constructor
-  public User(){
+  // Empty Constructor: JPA requries a default constructor for all entities
+  public User() {
 
   }
 
@@ -38,24 +32,28 @@ public class User {
     this.lastName = lastName;
   }
 
-  // Getters and Setters
+  // Getters
   public Long getId() {
     return id;
-  }
-  public void setId(Long id) {
-    this.id = id;
   }
 
   public String getFirstName() {
     return firstName;
   }
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
 
   public String getLastName() {
     return lastName;
   }
+
+  // Setters
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+
   public void setLastName(String lastName) {
     this.firstName = lastName;
   }

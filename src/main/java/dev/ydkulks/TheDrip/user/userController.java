@@ -6,10 +6,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class userController {
 
+  private final userService userService;
+
+  public userController(userService userService){
+    this.userService = userService;
+  }
+
   // NOTE: Signup page
   @GetMapping("/signup")
-  public String signup() {
-    return "Signup";
+  public Iterable<User> signup() {
+    return userService.get();
   }
 
   // NOTE: Login page
