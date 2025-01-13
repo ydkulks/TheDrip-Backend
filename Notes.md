@@ -31,25 +31,27 @@ There are multiple methods to initialize the spring boot project:
     ```
 
 > [!Note] Dependencies
-> Web, JPA, DevTools
+> Web, JPA, DevTools, h2
 
 ## 🏃🏻 Run Project
 
 1. List out all the available tasks of gradle
-```sh
-gradle tasks
-```
+
+    ```sh
+    gradle tasks
+    ```
 
 2. Run project using gradle wrapper
 
-For this project, if you are running the following commands for the first
-time; it will download specific gradle binary version to build the project.
-This can be commited to version controle.
+    ```sh
+    ./gradlew bootRun # if you have gradlew or gradlew.bat file at root of the project
+    ./gradlew build # for production
+    ```
 
-```sh
-./gradlew bootRun # if you have gradlew or gradlew.bat file at root of the project
-./gradlew build # for production
-```
+> [!Note]
+> For this project, if you are running the following commands for the first
+> time; it will download specific gradle binary version to build the project.
+> This can be commited to version controle.
 
 > [!Warning] Timeout Issue
 > If you are not able to download the gradle binary when you run the project
@@ -58,10 +60,10 @@ This can be commited to version controle.
 ## MVC Project Architecture
 ```txt
 com.domain.ProjectName/
-    Model                       : Convert JSON to Object and vise versa
-    View(Bean)                  : Renders view?
-    Controller(API)             : Handle HTTP requests
-    Service(Repository/Query)   : DBMS data manipulation
+    Controller : Handle HTTP requests
+    Service    : Business logic
+    Model      : Entities corresponding to database tables
+    Repository : Database interactions using JPA
 ```
 
 ## 🌐 Useful links
