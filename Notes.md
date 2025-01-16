@@ -4,8 +4,8 @@
 ## TODO
 - [x] Basic REST
 - [X] Basic CRUD
+- [x] Authentication
 - [ ] Authorization
-- [ ] Authentication
 
 ## ⚠️ Pre-requizits:
 - Java
@@ -31,7 +31,7 @@ There are multiple methods to initialize the spring boot project:
     ```
 
 > [!Note] Dependencies
-> Web, JPA, DevTools, h2
+> Web, JPA, DevTools, { Database }, Lombok
 
 ## 🏃🏻 Run Project
 
@@ -66,11 +66,56 @@ com.domain.ProjectName/
     Repository : Database interactions using JPA
 ```
 
+##  Database setup(PostgreSQL)
+0. Update package repository database
+```sh
+sudo pacman -Syy
+```
+1. Install PostgreSQL
+```sh
+sudo pacman -S postgresql
+```
+2. Initialize database directory
+```sh
+sudo -iu postgres # Login as 'postgres' user
+initdb --locale $LANG -E UTF8 -D '/var/lib/postgres/data/'
+exit
+```
+3. Start PostgreSQL server
+```sh
+su # Login as root user
+sudo systemctl start postgresql
+sudo systemctl status postgresql
+sudo systemctl enable postgresql
+exit
+```
+4. GUI for PostgreSQL
+```sh
+yay -S pgadmin4-desktop
+```
+
+Open the app and create server and database before moving on with the next step.
+
+5. Create a user to access a database
+```sh
+psql -U postgres
+```
+```sql
+\du
+CREATE ROLE user_name WITH LOGIN PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE database_name TO user_name;
+```
+6. Uninstall PostgreSQL
+```sh
+sudo pacman -Rcns postgresql
+```
+
 ## 🌐 Useful links
 - [Spring Initializer](https://start.spring.io)
 - [REST API tutorial](https://www.springboottutorial.com/spring-boot-crud-rest-service-with-jpa-hibernate)
 - [Annotations](https://www.geeksforgeeks.org/top-spring-boot-annotations/)
 - [Architectural patterns](https://dev.to/chiragagg5k/architecture-patterns-for-beginners-mvc-mvp-and-mvvm-2pe7?ref=dailydev)
+- [MVN Repository](https://mvnrepository.com)
 - [Spring MVC](https://www.marcobehler.com/guides/spring-mvc)
 - [MySQL connection](https://www.geeksforgeeks.org/how-to-work-with-databases-using-spring-boot/)
 - [H2 connection](https://spring.io/guides/gs/accessing-data-jpa)
