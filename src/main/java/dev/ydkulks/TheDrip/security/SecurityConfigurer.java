@@ -3,9 +3,11 @@ package dev.ydkulks.TheDrip.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,11 +27,15 @@ public class SecurityConfigurer {
   @Autowired
   private MyUserDetailsService userDetailsService;
 
+  // FIX: Disable auth for signup and login page
+  // TODO: Role based endpoint access
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
         .csrf(customizer -> customizer.disable()) // Disable all security
-        .authorizeHttpRequests(request -> request.anyRequest().authenticated()) // Enable basic auth for APIs
+        .authorizeHttpRequests(request -> request
+            .requestMatchers("/api/signup","/api/login").permitAll() // No basic auth for matched APIs
+            .anyRequest().authenticated()) // Enable basic auth for APIs
         .formLogin(Customizer.withDefaults()) // Enable login form in browser
         .httpBasic(Customizer.withDefaults()) // Handle basic auth
         .sessionManagement(
@@ -44,5 +50,10 @@ public class SecurityConfigurer {
     provider.setUserDetailsService(userDetailsService);
     provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
     return provider;
+  }
+
+  @Bean
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    return config.getAuthenticationManager();
   }
 }

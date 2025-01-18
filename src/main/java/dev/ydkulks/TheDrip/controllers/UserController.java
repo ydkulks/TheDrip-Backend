@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.ydkulks.TheDrip.models.UserModel;
+import dev.ydkulks.TheDrip.services.LoginService;
 import dev.ydkulks.TheDrip.services.SignupService;
 
 @RestController
@@ -32,6 +33,13 @@ public class UserController {
   @GetMapping("/login")
   public String login() {
     return "Login page";
+  }
+  @Autowired
+  private LoginService loginService;
+
+  @PostMapping("/login")
+  public String login(@RequestBody UserModel user) {
+    return loginService.verifyUser(user);
   }
 
 }
