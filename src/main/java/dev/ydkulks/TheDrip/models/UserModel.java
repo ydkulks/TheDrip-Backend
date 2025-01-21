@@ -3,8 +3,6 @@ package dev.ydkulks.TheDrip.models;
 import java.sql.Timestamp;
 
 import org.hibernate.annotations.CreationTimestamp;
-// import org.hibernate.annotations.Generated;
-// import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

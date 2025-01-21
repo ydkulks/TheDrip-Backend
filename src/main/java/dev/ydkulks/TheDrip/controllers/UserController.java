@@ -19,6 +19,7 @@ public class UserController {
   @Autowired
   private SignupService service;
 
+  // NOTE: Unauthenticated endpoints
   @PostMapping("/signup")
   public UserModel createUser(@RequestBody UserModel user) {
     return service.create(user);
@@ -29,7 +30,6 @@ public class UserController {
   //   return userService.getUserById(id);
   // }
 
-  // NOTE: Login page
   @GetMapping("/login")
   public String login() {
     return "Login page";

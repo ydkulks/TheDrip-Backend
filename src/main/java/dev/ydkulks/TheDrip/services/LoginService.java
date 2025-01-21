@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import dev.ydkulks.TheDrip.models.UserModel;
+import dev.ydkulks.TheDrip.repos.UserRepo;
 
 @Service
 public class LoginService {
@@ -16,12 +17,21 @@ public class LoginService {
   @Autowired
   JWTService jwtService;
 
+  @Autowired
+  UserRepo repo;
+
   public String verifyUser(UserModel user) {
     Authentication auth = 
       authManager.authenticate(
           new UsernamePasswordAuthenticationToken(user.getUsername(),user.getPassword())
         );
-    if (auth.isAuthenticated()) return jwtService.generateToken(user.getUsername());
+
+    UserModel userData = repo.findByUsername(user.getUsername());
+    if (auth.isAuthenticated()) return jwtService.generateToken(
+        userData.getEmail(),
+        user.getUsername(),
+        userData.getRole()
+      );
     return "Fail";
   }
 }

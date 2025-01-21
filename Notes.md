@@ -5,7 +5,8 @@
 - [x] Basic REST
 - [X] Basic CRUD
 - [x] Authentication
-- [ ] Authorization
+- [x] Authorization
+- [ ] Role based auth for API endpoints
 
 ## ⚠️ Pre-requizits:
 - Java

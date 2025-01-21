@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import dev.ydkulks.TheDrip.services.MyUserDetailsService;
 
@@ -27,7 +28,9 @@ public class SecurityConfigurer {
   @Autowired
   private MyUserDetailsService userDetailsService;
 
-  // FIX: Disable auth for signup and login page
+  @Autowired
+  private JwtFilter jwtFilter;
+
   // TODO: Role based endpoint access
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -41,6 +44,7 @@ public class SecurityConfigurer {
         .sessionManagement(
             session -> session.sessionCreationPolicy(
                 SessionCreationPolicy.STATELESS)) // Remove session
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
   }
 
