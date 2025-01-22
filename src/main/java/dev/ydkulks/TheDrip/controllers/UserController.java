@@ -1,5 +1,7 @@
 package dev.ydkulks.TheDrip.controllers;
 
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,8 +40,10 @@ public class UserController {
   private LoginService loginService;
 
   @PostMapping("/login")
-  public String login(@RequestBody UserModel user) {
-    return loginService.verifyUser(user);
+  public HashMap<String, String> login(@RequestBody UserModel user) {
+    HashMap<String, String> jwtToken = new HashMap<>();
+    jwtToken.put("token", loginService.verifyUser(user));
+    return jwtToken;
   }
 
 }
