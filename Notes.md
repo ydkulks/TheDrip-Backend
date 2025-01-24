@@ -6,7 +6,10 @@
 - [X] Basic CRUD
 - [x] Authentication
 - [x] Authorization
-- [ ] Role based auth for API endpoints
+- [x] Role based auth for API endpoints
+- [ ] Products
+- [ ] Cart
+- [ ] Order
 
 ## ⚠️ Pre-requizits:
 - Java

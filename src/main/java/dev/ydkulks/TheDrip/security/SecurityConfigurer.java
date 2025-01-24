@@ -31,13 +31,15 @@ public class SecurityConfigurer {
   @Autowired
   private JwtFilter jwtFilter;
 
-  // TODO: Role based endpoint access
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
         .csrf(customizer -> customizer.disable()) // Disable all security
         .authorizeHttpRequests(request -> request
             .requestMatchers("/api/signup","/api/login").permitAll() // No basic auth for matched APIs
+            .requestMatchers("/admin/**").hasAuthority("Admin") // Admin only
+            .requestMatchers("/customer/**").hasAnyAuthority("Customer","Admin")
+            .requestMatchers("/seller/**").hasAnyAuthority("Seller","Admin")
             .anyRequest().authenticated()) // Enable basic auth for APIs
         .formLogin(Customizer.withDefaults()) // Enable login form in browser
         .httpBasic(Customizer.withDefaults()) // Handle basic auth

@@ -1,13 +1,13 @@
--- create table if not exists users (
--- 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
--- 	email VARCHAR(255) UNIQUE NOT NULL,
--- 	username VARCHAR(100) UNIQUE NOT NULL,
--- 	password VARCHAR(255) NOT NULL,
--- 	role VARCHAR(50) DEFAULT 'Customer',
--- 	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
--- 	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
--- 
+CREATE TABLE IF NOT EXISTS users (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	email VARCHAR(255) UNIQUE NOT NULL,
+	username VARCHAR(100) UNIQUE NOT NULL,
+	password VARCHAR(255) NOT NULL,
+	role VARCHAR(50) DEFAULT 'Customer',
+	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- CREATE OR REPLACE FUNCTION update_timestamp()
 -- RETURNS TRIGGER AS $$
 -- BEGIN
@@ -20,6 +20,3 @@
 -- BEFORE UPDATE ON users
 -- FOR EACH ROW
 -- EXECUTE FUNCTION update_timestamp();
-
--- "id"	"email"	"username"	"password"	"role"	"created"	"updated"
--- 1	"test@mail.com"	"ydkulks"	"12345678"	"Seller"	"2025-01-15 14:53:16.503639"	"2025-01-15 14:53:16.503639"

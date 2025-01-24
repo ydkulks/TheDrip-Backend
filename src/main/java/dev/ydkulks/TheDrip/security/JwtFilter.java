@@ -3,6 +3,7 @@ package dev.ydkulks.TheDrip.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -16,6 +17,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -45,8 +48,15 @@ public class JwtFilter extends OncePerRequestFilter {
           .loadUserByUsername(username);
 
         if (jwtService.validateToken(token, userDetails)) {
+          // Extract role
+          String role = jwtService.extractClaim(token, claims -> claims.get("role", String.class));
+
+          // Add role to authorities
+          List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+          authorities.add(new SimpleGrantedAuthority(role));
+
           UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-              userDetails, null, userDetails.getAuthorities()
+              userDetails, null, authorities
             );
           authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
           SecurityContextHolder.getContext().setAuthentication(authToken);
