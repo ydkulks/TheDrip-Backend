@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- CREATE OR REPLACE FUNCTION update_timestamp()
 -- RETURNS TRIGGER AS $$
 -- BEGIN
--- 	NEW.update=CURRENT_TIMESTAMP;
+-- 	NEW.updated=CURRENT_TIMESTAMP;
 -- 	RETURN NEW;
 -- END;
 -- $$ LANGUAGE plpgsql;
@@ -20,3 +20,141 @@ CREATE TABLE IF NOT EXISTS users (
 -- BEFORE UPDATE ON users
 -- FOR EACH ROW
 -- EXECUTE FUNCTION update_timestamp();
+
+CREATE TABLE IF NOT EXISTS categories (
+	category_id SERIAL PRIMARY KEY,
+	category_name TEXT UNIQUE NOT NULL,
+	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- CREATE OR REPLACE TRIGGER set_updated_timestamp
+-- BEFORE UPDATE ON categories
+-- FOR EACH ROW
+-- EXECUTE FUNCTION update_timestamp();
+-- 
+CREATE TABLE IF NOT EXISTS product_sizes (
+	size_id SERIAL PRIMARY KEY,
+	size_name TEXT UNIQUE NOT NULL
+);
+
+-- TODO: Store product images
+-- Store base64 image in db?
+-- Use uploadthing.com?
+
+CREATE TABLE IF NOT EXISTS product (
+	product_id SERIAL PRIMARY KEY,
+	product_name TEXT NOT NULL,
+	category_id INTEGER REFERENCES categories(category_id) ON DELETE SET NULL,
+	series_id INTEGER REFERENCES product_series(series_id) ON DELETE SET NULL,
+	user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	product_price MONEY NOT NULL CHECK (product_price > 0),
+	product_description TEXT,
+	product_stock INTEGER CHECK (product_stock >= 0),
+	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- CREATE OR REPLACE TRIGGER set_updated_timestamp
+-- BEFORE UPDATE ON product
+-- FOR EACH ROW
+-- EXECUTE FUNCTION update_timestamp();
+
+CREATE TABLE IF NOT EXISTS product_product_sizes (
+	product_id INTEGER NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
+	size_id INTEGER NOT NULL REFERENCES product_sizes(size_id) ON DELETE CASCADE,
+	PRIMARY KEY (product_id, size_id)
+);
+
+CREATE TABLE IF NOT EXISTS product_colors (
+	color_id SERIAL PRIMARY KEY,
+	color_name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS product_product_colors (
+	product_id INTEGER NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
+	color_id INTEGER NOT NULL REFERENCES product_colors(color_id) ON DELETE CASCADE,
+	PRIMARY KEY (product_id, color_id)
+);
+
+CREATE TABLE IF NOT EXISTS product_series (
+	series_id SERIAL PRIMARY KEY,
+	series_name TEXT UNIQUE NOT NULL
+);
+-- ALTER TABLE product
+-- ADD COLUMN series_id INTEGER REFERENCES product_series(series_id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS product_images (
+	img_id SERIAL PRIMARY KEY,
+	img_base64 TEXT NOT NULL
+);
+
+/*
+-- NOTE: Example insert queries
+INSERT INTO categories (category_name) VALUES
+	('short_sleeve_tees'), ('long_sleeve_tees'), ('button_down_shirt'), ('hoodies'),
+	('cargos'), ('shorts'), ('sweat_pants'), ('tops'), ('bottoms'), ('bomber_jackets');
+
+INSERT INTO product_sizes (size_name) VALUES
+	('small'),('medium'),('large'),('extra_large'),('double_extra_large');
+
+INSERT INTO product_colors (color_name) VALUES
+	('original'), ('white'), ('black');
+
+INSERT INTO product (
+	product_name,
+	category_id,
+	user_id,
+	product_price,
+	product_description,
+	product_stock
+) VALUES (
+	'David Martinez Black Hoodie',
+	4,
+	2,
+	70.00,
+	'Printed art on front and back. Drawstring hood. Long sleeves',
+	100
+);
+
+INSERT INTO product_product_sizes (product_id, size_id) VALUES
+	(1, 1),
+	(1, 3),
+	(1, 5);
+
+INSERT INTO product_product_colors (product_id, color_id) VALUES (1, 1);
+
+INSERT INTO product_series (series_name) VALUES ('Cyberpunk: Edgerunners');
+UPDATE product series_id WHERE product_id=1;
+
+-- NOTE: Select querie to get all the details about the product
+SELECT 
+	p.product_id,
+	p.product_name,
+	p.product_description,
+	p.product_price,
+	p.product_stock,
+	pseries.series_name,
+	c.category_name,
+	u.username AS seller_name,
+	ARRAY_AGG(DISTINCT ps.size_name) AS sizes,
+	ARRAY_AGG(DISTINCT pc.color_name) AS colors
+FROM 
+	product p
+LEFT JOIN 
+	product_series pseries ON p.series_id = pseries.series_id
+LEFT JOIN 
+	categories c ON p.category_id = c.category_id
+LEFT JOIN 
+	users u ON p.user_id = u.id
+LEFT JOIN 
+	product_product_sizes pps ON p.product_id = pps.product_id
+LEFT JOIN 
+	product_sizes ps ON pps.size_id = ps.size_id
+LEFT JOIN 
+	product_product_colors ppc ON p.product_id = ppc.product_id
+LEFT JOIN 
+	product_colors pc ON ppc.color_id = pc.color_id
+WHERE 
+	p.product_id = 1 -- Replace 1 with the desired product_id
+GROUP BY 
+	p.product_id, pseries.series_name, c.category_name, u.username;
+*/
