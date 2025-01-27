@@ -8,6 +8,8 @@
 - [x] Authorization
 - [x] Role based auth for API endpoints
 - [ ] Products
+    - [ ] Upload product details
+    - [ ] Get product details
 - [ ] Cart
 - [ ] Order
 

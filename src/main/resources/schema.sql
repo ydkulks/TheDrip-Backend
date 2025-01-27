@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS product_sizes (
 );
 
 -- TODO: Store product images
--- Store base64 image in db?
--- Use uploadthing.com?
+-- Store base64 image in db? - Implemented
+-- Use uploadthing.com? - Try this in the future
 
 CREATE TABLE IF NOT EXISTS product (
 	product_id SERIAL PRIMARY KEY,
@@ -82,10 +82,27 @@ CREATE TABLE IF NOT EXISTS product_series (
 -- ALTER TABLE product
 -- ADD COLUMN series_id INTEGER REFERENCES product_series(series_id) ON DELETE SET NULL;
 
+-- NOTE: For Base64 method
 CREATE TABLE IF NOT EXISTS product_images (
 	img_id SERIAL PRIMARY KEY,
-	img_base64 TEXT NOT NULL
+	img_name TEXT NOT NULL,
+	img_type TEXT NOT NULL,
+	img_data BYTEA NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS product_product_images (
+	product_id INTEGER NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
+	img_id INTEGER NOT NULL REFERENCES product_images(img_id) ON DELETE CASCADE,
+	PRIMARY KEY (product_id, img_id)
+);
+
+-- NOTE: For File System method
+-- CREATE TABLE IF NOT EXISTS product_images (
+-- 	img_id SERIAL PRIMARY KEY,
+-- 	img_name TEXT NOT NULL,
+-- 	img_type TEXT NOT NULL,
+-- 	img_path TEXT NOT NULL
+-- );
 
 /*
 -- NOTE: Example insert queries
@@ -123,7 +140,8 @@ INSERT INTO product_product_sizes (product_id, size_id) VALUES
 INSERT INTO product_product_colors (product_id, color_id) VALUES (1, 1);
 
 INSERT INTO product_series (series_name) VALUES ('Cyberpunk: Edgerunners');
-UPDATE product series_id WHERE product_id=1;
+-- UPDATE product SET series_id=1 WHERE product_id=1;
+INSERT INTO product_product_images VALUES (1, 1);
 
 -- NOTE: Select querie to get all the details about the product
 SELECT 
@@ -157,4 +175,42 @@ WHERE
 	p.product_id = 1 -- Replace 1 with the desired product_id
 GROUP BY 
 	p.product_id, pseries.series_name, c.category_name, u.username;
+
+SELECT 
+	p.product_id,
+	p.product_name,
+	p.product_description,
+	p.product_price,
+	p.product_stock,
+	pseries.series_name,
+	c.category_name,
+	u.username AS seller_name,
+	ARRAY_AGG(DISTINCT ps.size_name) AS sizes,
+	ARRAY_AGG(DISTINCT pc.color_name) AS colors,
+	ARRAY_AGG(DISTINCT pi.img_data) AS images
+FROM 
+	product p
+LEFT JOIN 
+	product_series pseries ON p.series_id = pseries.series_id
+LEFT JOIN 
+	categories c ON p.category_id = c.category_id
+LEFT JOIN 
+	users u ON p.user_id = u.id
+LEFT JOIN 
+	product_product_sizes pps ON p.product_id = pps.product_id
+LEFT JOIN 
+	product_sizes ps ON pps.size_id = ps.size_id
+LEFT JOIN 
+	product_product_colors ppc ON p.product_id = ppc.product_id
+LEFT JOIN 
+	product_colors pc ON ppc.color_id = pc.color_id
+LEFT JOIN 
+	product_product_images ppi ON p.product_id = ppi.product_id
+LEFT JOIN 
+	product_images pi ON ppi.img_id = pi.img_id
+WHERE 
+	p.product_id = 1 -- Replace 1 with the desired product_id
+GROUP BY 
+	p.product_id, pseries.series_name, c.category_name, u.username;
+
 */
