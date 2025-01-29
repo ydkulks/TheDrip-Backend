@@ -8,6 +8,9 @@
 - [x] Authorization
 - [x] Role based auth for API endpoints
 - [ ] Products
+    - [ ] Upload images
+        - [x] Base64
+        - [ ] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
     - [ ] Upload product details
     - [ ] Get product details
 - [ ] Cart
