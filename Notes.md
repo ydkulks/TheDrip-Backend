@@ -11,6 +11,10 @@
     - [ ] Upload images
         - [x] Base64
         - [ ] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
+            - [x] Upload
+            - [ ] Save link to DB (Presigned link or make bucket public)
+            - [ ] Update
+            - [ ] Delete
     - [ ] Upload product details
     - [ ] Get product details
 - [ ] Cart
