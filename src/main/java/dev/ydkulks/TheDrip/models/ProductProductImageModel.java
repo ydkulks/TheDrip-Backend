@@ -18,14 +18,15 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "product_images")
-public class ProductImageModel {
+@Table(name = "product_product_images")
+public class ProductProductImageModel {
   @Id
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @Column(updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
+
+  private Integer product_id;
+
   private Integer img_id;
-  private String img_name;
-  private String img_type;
-  private String img_path;
 }

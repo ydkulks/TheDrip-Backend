@@ -1,21 +1,111 @@
 package dev.ydkulks.TheDrip.services;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.repos.ProductImageRepository;
 
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.retry.RetryMode;
+
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Bucket;
+import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+// import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+// import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 @Service
 public class ProductImageService {
   @Autowired
   ProductImageRepository productImageRepository;
 
-  public Optional<ProductImageModel> getImage() {
-    return productImageRepository.findById(1);
+  private static final Logger logger = LoggerFactory.getLogger(ProductImageService.class);
+  private static S3AsyncClient s3AsyncClient;
+
+  private static S3AsyncClient getAsyncClient() {
+    if (s3AsyncClient == null) {
+      SdkAsyncHttpClient httpClient = NettyNioAsyncHttpClient.builder()
+        .maxConcurrency(50)
+        .connectionTimeout(Duration.ofSeconds(60))
+        .readTimeout(Duration.ofSeconds(60))
+        .writeTimeout(Duration.ofSeconds(60))
+        .build();
+
+      ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+        .apiCallTimeout(Duration.ofMinutes(2))
+        .apiCallAttemptTimeout(Duration.ofSeconds(90))
+        .retryPolicy(RetryMode.STANDARD)
+        .build();
+
+      s3AsyncClient = S3AsyncClient.builder()
+        .region(Region.AP_SOUTH_1)
+        .httpClient(httpClient)
+        .overrideConfiguration(overrideConfig)
+        .build();
+    }
+    return s3AsyncClient;
+  }
+
+  private void close() {
+    s3AsyncClient.close();
+  }
+
+  // NOTE: Upload the images to S3 bucket
+  public List<CompletableFuture<PutObjectResponse>> uploadMultipleFilesAsync(String bucketName, String username, String productId, List<MultipartFile> files) {
+    return files.stream().map(file -> {
+      try {
+        String key = String.format("%s/%s/%s", username, productId, file.getOriginalFilename());
+
+        PutObjectRequest objectRequest = PutObjectRequest.builder()
+          .bucket(bucketName)
+          .key(key)
+          .contentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream")
+          .build();
+
+        AsyncRequestBody requestBody = AsyncRequestBody.fromBytes(file.getBytes());
+
+        CompletableFuture<PutObjectResponse> response = getAsyncClient().putObject(objectRequest, requestBody);
+
+        return response.whenComplete((resp, ex) -> {
+          if (ex != null) {
+            throw new RuntimeException("Failed to upload file: " + key, ex);
+          } else {
+            System.out.println(key);
+          }
+        });
+      } catch (Exception e) {
+        throw new RuntimeException("Error processing file", e);
+      }
+    }).collect(Collectors.toList());
+  }
+
+  // NOTE: Get the presigned url of the object for limited duration from S3 bucket
+  public String getImage() {
+    return "https://aws-s3-image-link";
   }
 
 }

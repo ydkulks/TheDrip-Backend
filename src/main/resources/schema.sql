@@ -37,10 +37,6 @@ CREATE TABLE IF NOT EXISTS product_sizes (
 	size_name TEXT UNIQUE NOT NULL
 );
 
--- TODO: Store product images
--- Store base64 image in db? - Implemented
--- Use uploadthing.com? - Try this in the future
-
 CREATE TABLE IF NOT EXISTS product (
 	product_id SERIAL PRIMARY KEY,
 	product_name TEXT NOT NULL,
@@ -59,9 +55,9 @@ CREATE TABLE IF NOT EXISTS product (
 -- EXECUTE FUNCTION update_timestamp();
 
 CREATE TABLE IF NOT EXISTS product_product_sizes (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	product_id INTEGER NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
 	size_id INTEGER NOT NULL REFERENCES product_sizes(size_id) ON DELETE CASCADE,
-	PRIMARY KEY (product_id, size_id)
 );
 
 CREATE TABLE IF NOT EXISTS product_colors (
@@ -70,9 +66,9 @@ CREATE TABLE IF NOT EXISTS product_colors (
 );
 
 CREATE TABLE IF NOT EXISTS product_product_colors (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	product_id INTEGER NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
 	color_id INTEGER NOT NULL REFERENCES product_colors(color_id) ON DELETE CASCADE,
-	PRIMARY KEY (product_id, color_id)
 );
 
 CREATE TABLE IF NOT EXISTS product_series (
@@ -82,27 +78,18 @@ CREATE TABLE IF NOT EXISTS product_series (
 -- ALTER TABLE product
 -- ADD COLUMN series_id INTEGER REFERENCES product_series(series_id) ON DELETE SET NULL;
 
--- NOTE: For Base64 method
 CREATE TABLE IF NOT EXISTS product_images (
 	img_id SERIAL PRIMARY KEY,
 	img_name TEXT NOT NULL,
 	img_type TEXT NOT NULL,
-	img_data BYTEA NOT NULL
+	img_data TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product_product_images (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	product_id INTEGER NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
-	img_id INTEGER NOT NULL REFERENCES product_images(img_id) ON DELETE CASCADE,
-	PRIMARY KEY (product_id, img_id)
+	img_id INTEGER NOT NULL REFERENCES product_images(img_id) ON DELETE CASCADE
 );
-
--- NOTE: For File System method
--- CREATE TABLE IF NOT EXISTS product_images (
--- 	img_id SERIAL PRIMARY KEY,
--- 	img_name TEXT NOT NULL,
--- 	img_type TEXT NOT NULL,
--- 	img_path TEXT NOT NULL
--- );
 
 /*
 -- NOTE: Example insert queries
