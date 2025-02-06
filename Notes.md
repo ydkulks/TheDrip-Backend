@@ -12,13 +12,20 @@
         - [x] Base64
         - [ ] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
             - [x] Upload multiple images
-            - [ ] Get presigned link and refresh link if expired
+            - [x] Get presigned link for one image
+            - [ ] Get presigned link for more than one image
             - [x] Update images
             - [ ] Delete images
     - [ ] Upload product details
+    - [x] Link images on S3 to its associated product
     - [ ] Get product details
+    - [ ] Product ratings
+    - [ ] Searching
+    - [ ] Sorting
+    - [ ] Pagination
 - [ ] Cart
 - [ ] Order
+- [ ] Feedback form
 
 ## ⚠️ Pre-requizits:
 1. **Java**

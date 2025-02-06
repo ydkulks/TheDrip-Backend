@@ -20,8 +20,6 @@ import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-// import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-// import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -104,8 +102,28 @@ public class ProductImageService {
   }
 
   // NOTE: Get the presigned url of the object for limited duration from S3 bucket
-  public String getImage() {
-    return "https://aws-s3-image-link";
+  public String getPresignedImageURL(String bucketName, String keyName) {
+    try (S3Presigner presigner = S3Presigner.builder()
+        .region(Region.AP_SOUTH_1)
+        .credentialsProvider(DefaultCredentialsProvider.create())
+        .build()) {
+
+      GetObjectRequest objectRequest = GetObjectRequest.builder()
+          .bucket(bucketName)
+          .key(keyName)
+          .build();
+
+      GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+          .signatureDuration(Duration.ofMinutes(10))
+          .getObjectRequest(objectRequest)
+          .build();
+
+      PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(presignRequest);
+      // logger.info("Presigned URL: [{}]", presignedRequest.url().toString());
+      // logger.info("HTTP method: [{}]", presignedRequest.httpRequest().method());
+
+      return presignedRequest.url().toExternalForm();
+    }
   }
 
 }

@@ -62,8 +62,9 @@ public class SellerController {
     return ResponseEntity.ok("All files uploaded");
   }
 
-  @GetMapping("/{id}/product/image")
-  public String getImageLink() {
-    return productImageService.getImage();
+  @GetMapping("/{username}/{productId}/{img_name}")
+  public String getImageLink(@PathVariable String username, @PathVariable String productId, @PathVariable String img_name) {
+    String filePath = String.format("%s/%s/%s",username,productId,img_name);
+    return productImageService.getPresignedImageURL("thedrip",filePath);
   }
 }
