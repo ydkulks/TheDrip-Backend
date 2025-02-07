@@ -13,7 +13,7 @@
         - [ ] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
             - [x] Upload multiple images
             - [x] Get presigned link for one image
-            - [ ] Get presigned link for more than one image
+            - [x] Get presigned link for more than one image
             - [x] Update images
             - [ ] Delete images
     - [ ] Upload product details

@@ -125,5 +125,38 @@ public class ProductImageService {
       return presignedRequest.url().toExternalForm();
     }
   }
+  public CompletableFuture<List<String>> getPresignedImageURLs(String bucket, String prefix) {
+        ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+            .bucket(bucket)
+            .prefix(prefix)
+            .build();
 
+        return getAsyncClient().listObjectsV2(listRequest)
+            .thenApply(listResponse ->
+                listResponse.contents().stream()
+                    .map(S3Object::key)
+                    // .map(this::getPresignedImageURL)  // Generate presigned URL for each key
+                    .map(key -> getPresignedImageURL(bucket,key))
+                    .collect(Collectors.toList())
+            )
+            .exceptionally(e -> {
+                logger.error("Error fetching objects from S3", e);
+                return List.of(); // Return empty list on failure
+            });
+    }
+
+    // Get all images for a specific product
+    public CompletableFuture<List<String>> getImagesForProduct(String bucket, String sellerName, String productId) {
+        return getPresignedImageURLs(bucket, sellerName + "/" + productId + "/");
+    }
+
+    // Get all images for a specific seller
+    public CompletableFuture<List<String>> getImagesForSeller(String bucket, String sellerName) {
+        return getPresignedImageURLs(bucket, sellerName + "/");
+    }
+
+    // Get all images for all sellers
+    public CompletableFuture<List<String>> getAllImages(String bucket) {
+        return getPresignedImageURLs(bucket, "");
+    }
 }

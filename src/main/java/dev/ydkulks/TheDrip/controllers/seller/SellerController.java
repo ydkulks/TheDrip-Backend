@@ -62,9 +62,28 @@ public class SellerController {
     return ResponseEntity.ok("All files uploaded");
   }
 
+  // NOTE: Get presigned URL for 1 user ,1 of their product and 1 image
   @GetMapping("/{username}/{productId}/{img_name}")
   public String getImageLink(@PathVariable String username, @PathVariable String productId, @PathVariable String img_name) {
     String filePath = String.format("%s/%s/%s",username,productId,img_name);
     return productImageService.getPresignedImageURL("thedrip",filePath);
+  }
+
+  // NOTE: Get presigned URL for 1 user, 1 of their product's images
+  @GetMapping("/{username}/{productId}/image")
+  public List<String> getImageLink(@PathVariable String username, @PathVariable String productId) {
+    return productImageService.getImagesForProduct("thedrip", username, productId).join();
+  }
+
+  // NOTE: Get presigned URL for 1 user and all of their product
+  @GetMapping("/{username}/product/image")
+  public List<String> getImageLink(@PathVariable String username) {
+    return productImageService.getImagesForSeller("thedrip", username).join();
+  }
+
+  // NOTE: Get presigned URLs of all the products
+  @GetMapping("/all/product/image")
+  public List<String> getImageLink() {
+    return productImageService.getAllImages("thedrip").join();
   }
 }
