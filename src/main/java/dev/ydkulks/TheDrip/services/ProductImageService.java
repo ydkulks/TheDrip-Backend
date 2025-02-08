@@ -24,6 +24,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -158,5 +160,53 @@ public class ProductImageService {
     // Get all images for all sellers
     public CompletableFuture<List<String>> getAllImages(String bucket) {
         return getPresignedImageURLs(bucket, "");
+    }
+
+    // NOTE: Delete images from S3 bucket
+    public CompletableFuture<Void> deleteMultipleImages(String bucket, String prefix) {
+      ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+        .bucket(bucket)
+        .prefix(prefix)
+        .build();
+
+      return getAsyncClient().listObjectsV2(listRequest)
+        .thenCompose(listResponse -> {
+          List<ObjectIdentifier> objectIdentifiers = listResponse.contents().stream()
+            .map(s3Object -> ObjectIdentifier.builder().key(s3Object.key()).build())
+            .collect(Collectors.toList());
+
+          if (objectIdentifiers.isEmpty()) {
+            logger.info("No objects found for prefix: {}", prefix);
+            return CompletableFuture.completedFuture(null);
+          }
+
+          Delete deleteObjects = Delete.builder()
+            .objects(objectIdentifiers)
+            .build();
+
+          DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+            .bucket(bucket)
+            .delete(deleteObjects)
+            .build();
+
+          return getAsyncClient().deleteObjects(deleteRequest)
+            // .thenAccept(response -> logger.info("Successfully deleted {} objects under prefix: {}", objectIdentifiers.size(), prefix))
+            .exceptionally(e -> {
+              logger.error("Failed to delete objects from S3", e);
+              return null;
+            });
+        });
+    }
+
+    public void deleteImagesForProduct(String bucket, String sellerName, String productName) {
+        deleteMultipleImages(bucket, sellerName + "/" + productName + "/");
+    }
+
+    public void deleteImagesForSeller(String bucket, String sellerName) {
+        deleteMultipleImages(bucket, sellerName + "/");
+    }
+
+    public void deleteAllImages(String bucket) {
+        deleteMultipleImages(bucket, "");
     }
 }

@@ -8,14 +8,14 @@
 - [x] Authorization
 - [x] Role based auth for API endpoints
 - [ ] Products
-    - [ ] Upload images
+    - [x] Upload images
         - [x] Base64
-        - [ ] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
+        - [x] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
             - [x] Upload multiple images
             - [x] Get presigned link for one image
             - [x] Get presigned link for more than one image
             - [x] Update images
-            - [ ] Delete images
+            - [x] Delete images
     - [ ] Upload product details
     - [x] Link images on S3 to its associated product
     - [ ] Get product details
@@ -149,6 +149,15 @@ Open the app and create server and database before moving on with the next step.
 - **`GET /products?filter=[key]=value`**: Apply filters to products (e.g., price range, brand).
 - **`GET /products?sort=[field]&order=[asc/desc]`**: Sort products based on a specific field in ascending or descending order.
 - **`GET /products?page={number}&limit={size}`**: Retrieve paginated list of products with specified page number and limit size.
+
+## 🧪 TDD
+> [!Tip]
+> Testing private methods in unit testing can break encapsulation as these methods
+> are meant to be accessed only within the class they belong to. Instead of
+> exposing these methods for testing, it's better to test the observable behavior through
+> public methods. Private methods impact the internal state or public method
+> outputs, which should be tested instead of the private methods themselves.
+> [🔗](https://dev.to/canro91/this-is-why-we-dont-test-private-methods-28ef?ref=dailydev)
 
 ## 🌐 Useful links
 - [Spring Initializer](https://start.spring.io)
