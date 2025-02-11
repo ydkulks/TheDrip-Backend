@@ -18,7 +18,7 @@
             - [x] Delete images
     - [ ] Upload product details
     - [x] Link images on S3 to its associated product
-    - [ ] Get product details
+    - [x] Get product details
     - [ ] Product ratings
     - [ ] Searching
     - [ ] Sorting

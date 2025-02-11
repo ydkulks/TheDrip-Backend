@@ -190,7 +190,7 @@ public class ProductImageService {
             .build();
 
           return getAsyncClient().deleteObjects(deleteRequest)
-            // .thenAccept(response -> logger.info("Successfully deleted {} objects under prefix: {}", objectIdentifiers.size(), prefix))
+            .thenAccept(response -> logger.info("Successfully deleted {} objects under prefix: {}", objectIdentifiers.size(), prefix))
             .exceptionally(e -> {
               logger.error("Failed to delete objects from S3", e);
               return null;

@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS product (
 CREATE TABLE IF NOT EXISTS product_product_sizes (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	product_id INTEGER NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
-	size_id INTEGER NOT NULL REFERENCES product_sizes(size_id) ON DELETE CASCADE,
+	size_id INTEGER NOT NULL REFERENCES product_sizes(size_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS product_colors (
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS product_colors (
 CREATE TABLE IF NOT EXISTS product_product_colors (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	product_id INTEGER NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
-	color_id INTEGER NOT NULL REFERENCES product_colors(color_id) ON DELETE CASCADE,
+	color_id INTEGER NOT NULL REFERENCES product_colors(color_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS product_series (
@@ -141,40 +141,8 @@ SELECT
 	c.category_name,
 	u.username AS seller_name,
 	ARRAY_AGG(DISTINCT ps.size_name) AS sizes,
-	ARRAY_AGG(DISTINCT pc.color_name) AS colors
-FROM 
-	product p
-LEFT JOIN 
-	product_series pseries ON p.series_id = pseries.series_id
-LEFT JOIN 
-	categories c ON p.category_id = c.category_id
-LEFT JOIN 
-	users u ON p.user_id = u.id
-LEFT JOIN 
-	product_product_sizes pps ON p.product_id = pps.product_id
-LEFT JOIN 
-	product_sizes ps ON pps.size_id = ps.size_id
-LEFT JOIN 
-	product_product_colors ppc ON p.product_id = ppc.product_id
-LEFT JOIN 
-	product_colors pc ON ppc.color_id = pc.color_id
-WHERE 
-	p.product_id = 1 -- Replace 1 with the desired product_id
-GROUP BY 
-	p.product_id, pseries.series_name, c.category_name, u.username;
-
-SELECT 
-	p.product_id,
-	p.product_name,
-	p.product_description,
-	p.product_price,
-	p.product_stock,
-	pseries.series_name,
-	c.category_name,
-	u.username AS seller_name,
-	ARRAY_AGG(DISTINCT ps.size_name) AS sizes,
 	ARRAY_AGG(DISTINCT pc.color_name) AS colors,
-	ARRAY_AGG(DISTINCT pi.img_data) AS images
+	ARRAY_AGG(DISTINCT pi.img_path) AS images
 FROM 
 	product p
 LEFT JOIN 
