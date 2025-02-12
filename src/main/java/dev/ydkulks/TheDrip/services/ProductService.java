@@ -6,6 +6,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import dev.ydkulks.TheDrip.models.ProductModel;
@@ -29,11 +32,11 @@ public class ProductService {
   }
 
   // TODO: Paginate and sort all products
-  public CompletableFuture<List<ProductResponseDTO>> getAllProductDetails() {
-    List<ProductProjectionDTO> products = repo.getAllProducts();
-    // return products;
+  public CompletableFuture<List<ProductResponseDTO>> getAllProductDetails(int page, int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    Page<ProductProjectionDTO> products = repo.getAllProducts(pageable);
 
-    List<CompletableFuture<ProductResponseDTO>> futures = products.stream()
+    List<CompletableFuture<ProductResponseDTO>> futures = products.getContent().stream()
       .map(product -> {
         List<String> s3Paths = product.getImages(); // Get all stored paths
         // System.out.println("S3paths: " + s3Paths);
@@ -48,7 +51,7 @@ public class ProductService {
             List<List<String>> urlLists = urlFutures.stream()
               .map(CompletableFuture::join)
               .collect(Collectors.toList());
-            System.out.println("Completed URLs: " + urlLists);
+            // System.out.println("Completed URLs: " + urlLists);
             return urlLists.stream().flatMap(List::stream).collect(Collectors.toList());
           })
         .thenApply(imageUrls -> new ProductResponseDTO(product, imageUrls));

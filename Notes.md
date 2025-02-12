@@ -22,7 +22,7 @@
     - [ ] Product ratings
     - [ ] Searching
     - [ ] Sorting
-    - [ ] Pagination
+    - [x] Pagination
 - [ ] Cart
 - [ ] Order
 - [ ] Feedback form

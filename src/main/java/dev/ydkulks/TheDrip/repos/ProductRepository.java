@@ -1,7 +1,7 @@
 package dev.ydkulks.TheDrip.repos;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -47,5 +47,5 @@ public interface ProductRepository extends JpaRepository<ProductModel, Integer> 
         GROUP BY 
             p.product_id, pseries.series_name, c.category_name, u.username
         """, nativeQuery = true)
-    List<ProductProjectionDTO> getAllProducts();
+    Page<ProductProjectionDTO> getAllProducts(Pageable pageable);
 }
