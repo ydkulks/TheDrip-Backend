@@ -20,8 +20,8 @@
     - [x] Link images on S3 to its associated product
     - [x] Get product details
     - [ ] Product ratings
-    - [ ] Searching
-    - [ ] Sorting
+    - [ ] Searching name, categories, seller, series
+    - [ ] Sorting by name, price, stock
     - [x] Pagination
 - [ ] Cart
 - [ ] Order

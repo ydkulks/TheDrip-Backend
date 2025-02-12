@@ -36,6 +36,7 @@ public class ProductController {
       @RequestParam(defaultValue = "10") int size) {
 
     // System.out.println("Got request to api/products");
+    // System.out.println("Page & Size [controller]: " + page + " " + size);
     CompletableFuture<List<ProductResponseDTO>> products = productService.getAllProductDetails(page, size);
     // System.out.println("Products :" + products);
     return products;
