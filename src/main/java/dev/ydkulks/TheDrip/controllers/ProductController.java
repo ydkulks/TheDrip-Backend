@@ -23,11 +23,18 @@ public class ProductController {
   @Autowired
   private ProductService productService;
 
+  // NOTE: Get product by ID
+  // @GetMapping("/product")
+  // public ResponseEntity<ProductModel> product(@RequestParam(defaultValue = "1") int id) {
+  //   // System.out.println("ProdId: " + id);
+  //   return productService.getProductDetails(id)
+  //     .map(ResponseEntity::ok)
+  //     .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+  // }
   @GetMapping("/product")
-  public ResponseEntity<ProductModel> product() {
-    return productService.getProductDetails()
-      .map(ResponseEntity::ok)
-      .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+  public ResponseEntity<ProductResponseDTO> product(@RequestParam(defaultValue = "1") int id) {
+    // System.out.println("ProdId: " + id);
+    return productService.getProductDetails(id);
   }
 
   @GetMapping("/products")

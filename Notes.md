@@ -7,6 +7,10 @@
 - [x] Authentication
 - [x] Authorization
 - [x] Role based auth for API endpoints
+- [ ] User profile
+    - [ ] Get user data
+    - [ ] Update user data
+    - [ ] Delete user data
 - [ ] Products
     - [x] Upload images
         - [x] Base64
@@ -17,12 +21,15 @@
             - [x] Update images
             - [x] Delete images
     - [ ] Upload product details
+    - [ ] Update product details
     - [x] Link images on S3 to its associated product
     - [x] Get product details
-    - [ ] Product ratings
-    - [ ] Searching name, categories, seller, series
+    - [ ] Product reviews
+    - [ ] Searching by name
+    - [ ] Filter by categories, seller, series
     - [ ] Sorting by name, price, stock
     - [x] Pagination
+    - [ ] Product sold
 - [ ] Cart
 - [ ] Order
 - [ ] Feedback form

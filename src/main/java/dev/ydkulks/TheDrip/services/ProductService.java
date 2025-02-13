@@ -2,7 +2,6 @@ package dev.ydkulks.TheDrip.services;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -12,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.repos.ProductProjectionDTO;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductResponseDTO;
@@ -26,13 +24,19 @@ public class ProductService {
   @Autowired
   ProductImageService productImageService;
 
-  public Optional<ProductModel> getProductDetails() {
-    Optional<ProductModel> product = repo.findById(1);
-    // List<ProductModel> product = repo.findAll();
-    return product;
+  public ProductResponseDTO getProductDetails(int id) {
+    ProductProjectionDTO product = repo.getProductById(id);
+    List<String> s3Paths = product.getImages();
+
+    List<String> imageUrls = s3Paths
+      .stream()
+      .map(path -> productImageService.getPresignedImageURL("thedrip", path))
+      .collect(Collectors.toList());
+
+    // return product;
+    return new ProductResponseDTO(product, imageUrls);
   }
 
-  // TODO: Paginate and sort all products
   public CompletableFuture<List<ProductResponseDTO>> getAllProductDetails(int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
     // Fetch the products with pagination
