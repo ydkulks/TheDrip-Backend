@@ -7,11 +7,13 @@ import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 import dev.ydkulks.TheDrip.repos.ProductImageRepository;
 import dev.ydkulks.TheDrip.repos.ProductProductImageRepository;
 import dev.ydkulks.TheDrip.services.ProductImageService;
+import dev.ydkulks.TheDrip.services.ProductService;
+import jakarta.transaction.Transactional;
+import dev.ydkulks.TheDrip.models.ProductCreationDTO;
+import dev.ydkulks.TheDrip.models.ProductCreationModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.models.ProductProductImageModel;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -28,16 +34,43 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 @RequestMapping("/seller")
 public class SellerController {
 
-  @Autowired
-  private ProductImageRepository productImageRepository;
+  @Autowired private ProductImageRepository productImageRepository;
+  @Autowired private ProductImageService productImageService;
+  @Autowired private ProductProductImageRepository productProductImageRepository;
+  @Autowired private ProductService productService;
 
-  @Autowired
-  private ProductImageService productImageService;
+  // NOTE: Create/Update product details
+  @PostMapping("/product")
+  public ResponseEntity<ProductCreationModel> createProduct(@RequestBody ProductCreationDTO data) {
+    try {
+      // System.out.println("ProductName: "+data.getProductName());
+      // System.out.println("CategoryId: "+data.getCategoryId());
+      // System.out.println("UserId: "+data.getUserId());
+      // System.out.println("UserId: "+data.getSeriesId());
+      // System.out.println("Price: "+data.getProductPrice());
+      // System.out.println("Description: "+data.getProductDescription());
+      // System.out.println("SizeId: "+ data.getProductSizes());
+      // System.out.println("ColorId: "+ data.getProductColors());
 
-  @Autowired
-  private ProductProductImageRepository productProductImageRepository;
+      ProductCreationModel product = productService.createProduct(
+        data.getProductName(),
+        data.getCategoryId(),
+        data.getUserId(),
+        data.getSeriesId(),
+        data.getProductPrice(),
+        data.getProductDescription(),
+        data.getProductStock(),
+        data.getProductSizes(),
+        data.getProductColors()
+      );
+      return new ResponseEntity<>(product, HttpStatus.CREATED);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+  }
 
   @PostMapping("/{username}/{productId}/image")
+  @Transactional
   public ResponseEntity<String> uploadImage(@PathVariable String username, @PathVariable String productId, @RequestParam("file") List<MultipartFile> files) throws IOException {
     // Upload image to S3
     List<CompletableFuture<PutObjectResponse>> responses = productImageService.uploadMultipleFilesAsync("thedrip", username, productId, files);

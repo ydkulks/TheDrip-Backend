@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.repos.UserRepo;
+import jakarta.transaction.Transactional;
 
 @Service
 public class SignupService {
@@ -14,6 +15,7 @@ public class SignupService {
 
   private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
+  @Transactional
   public UserModel create(UserModel user) {
     user.setPassword(encoder.encode(user.getPassword()));
     return repo.save(user);

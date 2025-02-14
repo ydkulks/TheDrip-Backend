@@ -36,12 +36,7 @@ public class SecurityConfigurer {
     return http
         .csrf(customizer -> customizer.disable()) // Disable all security
         .authorizeHttpRequests(request -> request
-            .requestMatchers(
-                "/api/signup",
-                "/api/login", 
-                "/api/product",
-                "/api/products"
-              ).permitAll() // No basic auth for matched APIs
+            .requestMatchers("/api/**").permitAll() // No basic auth for matched APIs
             .requestMatchers("/admin/**").hasAuthority("Admin") // Admin only
             .requestMatchers("/customer/**").hasAnyAuthority("Customer","Admin")
             .requestMatchers("/seller/**").hasAnyAuthority("Seller","Admin")

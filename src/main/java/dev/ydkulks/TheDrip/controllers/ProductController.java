@@ -34,7 +34,12 @@ public class ProductController {
   @GetMapping("/product")
   public ResponseEntity<ProductResponseDTO> product(@RequestParam(defaultValue = "1") int id) {
     // System.out.println("ProdId: " + id);
-    return productService.getProductDetails(id);
+    ProductResponseDTO response = productService.getProductDetails(id);
+    if (response != null) {
+      return new ResponseEntity<>(response, HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
   }
 
   @GetMapping("/products")

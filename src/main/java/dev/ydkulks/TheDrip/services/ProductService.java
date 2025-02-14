@@ -1,7 +1,9 @@
 package dev.ydkulks.TheDrip.services;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -11,21 +13,124 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
+import dev.ydkulks.TheDrip.models.ProductColorsModel;
+import dev.ydkulks.TheDrip.models.ProductCreationModel;
+import dev.ydkulks.TheDrip.models.ProductSeriesModel;
+import dev.ydkulks.TheDrip.models.ProductSizesModel;
+import dev.ydkulks.TheDrip.models.UserModel;
+import dev.ydkulks.TheDrip.repos.ProductCategoriesRepository;
+import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
+import dev.ydkulks.TheDrip.repos.ProductCreationRepository;
+import dev.ydkulks.TheDrip.repos.ProductProductColorsRepository;
+import dev.ydkulks.TheDrip.repos.ProductProductSizesRepository;
 import dev.ydkulks.TheDrip.repos.ProductProjectionDTO;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductResponseDTO;
+import dev.ydkulks.TheDrip.repos.ProductSeriesRepository;
+import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
+import dev.ydkulks.TheDrip.repos.UserRepo;
+import jakarta.transaction.Transactional;
 
 
 @Service
 public class ProductService {
-  @Autowired
-  ProductRepository repo;
+  @Autowired ProductRepository productRepository;
+  @Autowired ProductColorsRepository productColorsRepository;
+  @Autowired ProductSeriesRepository productSeriesRepository;
+  @Autowired ProductProductColorsRepository productProductColorsRepository;
+  @Autowired ProductProductSizesRepository productProductSizesRepository;
+  @Autowired ProductImageService productImageService;
+  @Autowired ProductCategoriesRepository productCategoriesRepository;
+  @Autowired UserRepo userRepo;
+  @Autowired ProductSizesRepository productSizesRepository;
+  @Autowired ProductCreationRepository productCreationRepository;
 
-  @Autowired
-  ProductImageService productImageService;
+  // NOTE: Create
+  // @Transactional
+  // public ProductModel createOrUpdateProductDetails(ProductModel newProduct) {
+  //   return productRepository.save(newProduct);
+  // }
+  @Transactional
+  public ProductCreationModel createProduct(
+    String productName,
+    Integer categoryId,
+    Integer userId,
+    Integer seriesId,
+    Double productPrice,
+    String productDescription,
+    Integer productStock,
+    List<Integer> sizeIds,
+    List<Integer> colorIds
+  ) {
+    ProductCategoriesModel category = productCategoriesRepository
+      .findById(categoryId)
+      .orElseThrow(() ->
+        new IllegalArgumentException("Invalid category ID: " + categoryId)
+      );
+    UserModel user = userRepo
+      .findById(userId)
+      .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
+    ProductSeriesModel series = productSeriesRepository
+      .findById(seriesId)
+      .orElseThrow(() -> new IllegalArgumentException("Invalid series ID: " + seriesId));
 
+    ProductCreationModel product = new ProductCreationModel();
+    product.setProductName(productName);
+    product.setCategory(category);
+    product.setUser(user);
+    product.setSeries(series);
+    product.setProductPrice(productPrice);
+    product.setProductDescription(productDescription);
+    product.setProductStock(productStock);
+
+    // Handle sizes
+    Set<ProductSizesModel> sizes = new HashSet<>();
+    for (Integer sizeId : sizeIds) {
+      ProductSizesModel size = productSizesRepository
+        .findById(sizeId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid size ID: " + sizeId));
+      sizes.add(size);
+    }
+    product.setSizes(sizes);
+
+    // Handle colors
+    Set<ProductColorsModel> colors = new HashSet<>();
+    for (Integer colorId : colorIds) {
+      ProductColorsModel color = productColorsRepository
+        .findById(colorId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid color ID: " + colorId));
+      colors.add(color);
+    }
+    product.setColors(colors);
+
+    return productCreationRepository.save(product);
+  }
+
+  @Transactional
+  public ProductColorsModel createOrUpdateColor(ProductColorsModel newColor) {
+    return productColorsRepository.save(newColor);
+  }
+
+  @Transactional
+  public ProductSeriesModel createOrUpdateSeries(ProductSeriesModel newSeries) {
+    return productSeriesRepository.save(newSeries);
+  }
+
+  // @Transactional
+  // public ProductProductColorsModel linkOrUpdateLinkOfColor(ProductProductColorsModel newColorLink) {
+  //   return productProductColorsRepository.save(newColorLink);
+  // }
+
+  // @Transactional
+  // public ProductProductSizesModel linkOrUpdateLinkOfSize(ProductProductSizesModel newColorLink) {
+  //   return productProductSizesRepository.save(newColorLink);
+  // }
+
+  // NOTE: Get
+  @Transactional
   public ProductResponseDTO getProductDetails(int id) {
-    ProductProjectionDTO product = repo.getProductById(id);
+    ProductProjectionDTO product = productRepository.getProductById(id);
     List<String> s3Paths = product.getImages();
 
     List<String> imageUrls = s3Paths
@@ -37,10 +142,11 @@ public class ProductService {
     return new ProductResponseDTO(product, imageUrls);
   }
 
+  @Transactional
   public CompletableFuture<List<ProductResponseDTO>> getAllProductDetails(int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
     // Fetch the products with pagination
-    Page<ProductProjectionDTO> products = repo.getAllProducts(pageable);
+    Page<ProductProjectionDTO> products = productRepository.getAllProducts(pageable);
 
     // Check if the page is valid
     if (page >= products.getTotalPages()) {

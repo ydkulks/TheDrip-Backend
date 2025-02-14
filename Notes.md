@@ -20,7 +20,7 @@
             - [x] Get presigned link for more than one image
             - [x] Update images
             - [x] Delete images
-    - [ ] Upload product details
+    - [x] Upload product details
     - [ ] Update product details
     - [x] Link images on S3 to its associated product
     - [x] Get product details
