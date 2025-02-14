@@ -41,7 +41,8 @@ public class SellerController {
 
   // NOTE: Create/Update product details
   @PostMapping("/product")
-  public ResponseEntity<ProductCreationModel> createProduct(@RequestBody ProductCreationDTO data) {
+  // public ResponseEntity<ProductCreationModel> createProduct(@RequestBody ProductCreationDTO data) {
+  public ResponseEntity<String> createProduct(@RequestBody ProductCreationDTO data) {
     try {
       // System.out.println("ProductName: "+data.getProductName());
       // System.out.println("CategoryId: "+data.getCategoryId());
@@ -52,7 +53,7 @@ public class SellerController {
       // System.out.println("SizeId: "+ data.getProductSizes());
       // System.out.println("ColorId: "+ data.getProductColors());
 
-      ProductCreationModel product = productService.createProduct(
+      ProductCreationModel product = productService.createOrUpdateProduct(
         data.getProductName(),
         data.getCategoryId(),
         data.getUserId(),
@@ -63,7 +64,7 @@ public class SellerController {
         data.getProductSizes(),
         data.getProductColors()
       );
-      return new ResponseEntity<>(product, HttpStatus.CREATED);
+      return new ResponseEntity<>(product.getProductName(), HttpStatus.CREATED);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }

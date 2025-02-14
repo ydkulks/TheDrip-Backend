@@ -3,6 +3,7 @@ package dev.ydkulks.TheDrip.services;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -47,12 +48,8 @@ public class ProductService {
   @Autowired ProductCreationRepository productCreationRepository;
 
   // NOTE: Create
-  // @Transactional
-  // public ProductModel createOrUpdateProductDetails(ProductModel newProduct) {
-  //   return productRepository.save(newProduct);
-  // }
   @Transactional
-  public ProductCreationModel createProduct(
+  public ProductCreationModel createOrUpdateProduct(
     String productName,
     Integer categoryId,
     Integer userId,
@@ -63,6 +60,8 @@ public class ProductService {
     List<Integer> sizeIds,
     List<Integer> colorIds
   ) {
+    // Check if product exists
+    Optional<ProductCreationModel> existingProductOpt = productCreationRepository.findByProductName(productName);
     ProductCategoriesModel category = productCategoriesRepository
       .findById(categoryId)
       .orElseThrow(() ->
@@ -75,7 +74,16 @@ public class ProductService {
       .findById(seriesId)
       .orElseThrow(() -> new IllegalArgumentException("Invalid series ID: " + seriesId));
 
-    ProductCreationModel product = new ProductCreationModel();
+    // ProductCreationModel product = new ProductCreationModel();
+    ProductCreationModel product;
+    if (existingProductOpt.isPresent()) {
+      product = existingProductOpt.get();
+      System.out.println("Updating existing product: " + product.getProduct_id());
+    } else {
+      product = new ProductCreationModel();
+      System.out.println("Creating new product");
+    }
+
     product.setProductName(productName);
     product.setCategory(category);
     product.setUser(user);

@@ -21,7 +21,7 @@
             - [x] Update images
             - [x] Delete images
     - [x] Upload product details
-    - [ ] Update product details
+    - [x] Update product details
     - [x] Link images on S3 to its associated product
     - [x] Get product details
     - [ ] Product reviews

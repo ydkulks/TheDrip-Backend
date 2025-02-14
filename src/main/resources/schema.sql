@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS product_sizes (
 
 CREATE TABLE IF NOT EXISTS product (
 	product_id SERIAL PRIMARY KEY,
-	product_name TEXT NOT NULL,
+	product_name TEXT NOT NULL UNIQUE,
 	category_id INTEGER REFERENCES categories(category_id) ON DELETE SET NULL,
 	series_id INTEGER REFERENCES product_series(series_id) ON DELETE SET NULL,
 	user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
