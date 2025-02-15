@@ -17,16 +17,17 @@ import org.springframework.stereotype.Service;
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductCreationModel;
+import dev.ydkulks.TheDrip.models.ProductImageModel;
+import dev.ydkulks.TheDrip.models.ProductProductColorsModel;
+import dev.ydkulks.TheDrip.models.ProductProductSizesModel;
 import dev.ydkulks.TheDrip.models.ProductSeriesModel;
 import dev.ydkulks.TheDrip.models.ProductSizesModel;
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.repos.ProductCategoriesRepository;
 import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
-import dev.ydkulks.TheDrip.repos.ProductCreationRepository;
+import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductProductColorsRepository;
 import dev.ydkulks.TheDrip.repos.ProductProductSizesRepository;
-import dev.ydkulks.TheDrip.repos.ProductProjectionDTO;
-import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductResponseDTO;
 import dev.ydkulks.TheDrip.repos.ProductSeriesRepository;
 import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
@@ -36,7 +37,6 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class ProductService {
-  @Autowired ProductRepository productRepository;
   @Autowired ProductColorsRepository productColorsRepository;
   @Autowired ProductSeriesRepository productSeriesRepository;
   @Autowired ProductProductColorsRepository productProductColorsRepository;
@@ -45,7 +45,7 @@ public class ProductService {
   @Autowired ProductCategoriesRepository productCategoriesRepository;
   @Autowired UserRepo userRepo;
   @Autowired ProductSizesRepository productSizesRepository;
-  @Autowired ProductCreationRepository productCreationRepository;
+  @Autowired ProductRepository productRepository;
 
   // NOTE: Create
   @Transactional
@@ -61,7 +61,7 @@ public class ProductService {
     List<Integer> colorIds
   ) {
     // Check if product exists
-    Optional<ProductCreationModel> existingProductOpt = productCreationRepository.findByProductName(productName);
+    Optional<ProductCreationModel> existingProductOpt = productRepository.findByProductName(productName);
     ProductCategoriesModel category = productCategoriesRepository
       .findById(categoryId)
       .orElseThrow(() ->
@@ -74,11 +74,10 @@ public class ProductService {
       .findById(seriesId)
       .orElseThrow(() -> new IllegalArgumentException("Invalid series ID: " + seriesId));
 
-    // ProductCreationModel product = new ProductCreationModel();
     ProductCreationModel product;
     if (existingProductOpt.isPresent()) {
       product = existingProductOpt.get();
-      System.out.println("Updating existing product: " + product.getProduct_id());
+      System.out.println("Updating existing product: " + product.getProductId());
     } else {
       product = new ProductCreationModel();
       System.out.println("Creating new product");
@@ -112,7 +111,7 @@ public class ProductService {
     }
     product.setColors(colors);
 
-    return productCreationRepository.save(product);
+    return productRepository.save(product);
   }
 
   @Transactional
@@ -125,70 +124,62 @@ public class ProductService {
     return productSeriesRepository.save(newSeries);
   }
 
-  // @Transactional
-  // public ProductProductColorsModel linkOrUpdateLinkOfColor(ProductProductColorsModel newColorLink) {
-  //   return productProductColorsRepository.save(newColorLink);
-  // }
+  @Transactional
+  public ProductProductColorsModel linkOrUpdateLinkOfColor(ProductProductColorsModel newColorLink) {
+    return productProductColorsRepository.save(newColorLink);
+  }
 
-  // @Transactional
-  // public ProductProductSizesModel linkOrUpdateLinkOfSize(ProductProductSizesModel newColorLink) {
-  //   return productProductSizesRepository.save(newColorLink);
-  // }
+  @Transactional
+  public ProductProductSizesModel linkOrUpdateLinkOfSize(ProductProductSizesModel newColorLink) {
+    return productProductSizesRepository.save(newColorLink);
+  }
 
   // NOTE: Get
   @Transactional
   public ProductResponseDTO getProductDetails(int id) {
-    ProductProjectionDTO product = productRepository.getProductById(id);
-    List<String> s3Paths = product.getImages();
+    Optional<ProductCreationModel> product = productRepository.findByProductId(id);
+    if(product.isPresent()){
+      List<String> s3Paths = product.get().getImages()
+        .stream()
+        .map(ProductImageModel::getImg_path)
+        .collect(Collectors.toList());
 
-    List<String> imageUrls = s3Paths
-      .stream()
-      .map(path -> productImageService.getPresignedImageURL("thedrip", path))
-      .collect(Collectors.toList());
+      List<String> imageUrls = s3Paths
+        .stream()
+        .map(path -> productImageService.getPresignedImageURL("thedrip", path))
+        .collect(Collectors.toList());
+      return new ProductResponseDTO(product, imageUrls);
+    }
 
-    // return product;
-    return new ProductResponseDTO(product, imageUrls);
+    return null;
   }
 
   @Transactional
   public CompletableFuture<List<ProductResponseDTO>> getAllProductDetails(int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
-    // Fetch the products with pagination
-    Page<ProductProjectionDTO> products = productRepository.getAllProducts(pageable);
+    Page<ProductCreationModel> products = productRepository.findAll(pageable);
 
     // Check if the page is valid
     if (page >= products.getTotalPages()) {
       return CompletableFuture.completedFuture(Collections.emptyList());
     }
 
-    List<CompletableFuture<ProductResponseDTO>> futures = products.getContent().stream()
+    List<ProductResponseDTO> productResponseDTOs = products.getContent().stream()
       .map(product -> {
-        List<String> s3Paths = product.getImages(); // Get all stored paths
-
-        // Fetch pre-signed URLs for each path
-        List<CompletableFuture<List<String>>> urlFutures = s3Paths.stream()
-          .map(path -> productImageService.getPresignedImageURLs("thedrip", path))
+        List<String> s3Paths = product.getImages()
+          .stream()
+          .map(ProductImageModel::getImg_path)
           .collect(Collectors.toList());
 
-        // Combine all futures into a single future list of URLs
-        return CompletableFuture.allOf(urlFutures.toArray(new CompletableFuture[0]))
-          .thenApply(v -> {
-            List<List<String>> urlLists = urlFutures.stream()
-              .map(CompletableFuture::join)
-              .collect(Collectors.toList());
-            return urlLists.stream().flatMap(List::stream).collect(Collectors.toList());
-          })
-        .thenApply(imageUrls -> new ProductResponseDTO(product, imageUrls));
+        List<String> imageUrls = s3Paths
+          .stream()
+          .map(path -> productImageService.getPresignedImageURL("thedrip", path))
+          .collect(Collectors.toList());
+
+        return new ProductResponseDTO(Optional.of(product), imageUrls);
       })
     .collect(Collectors.toList());
 
-    // Combine all product futures into a single future list of ProductResponseDTO
-    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-      .thenApply(v -> {
-        List<ProductResponseDTO> productResponseList = futures.stream()
-          .map(CompletableFuture::join)
-          .collect(Collectors.toList());
-        return productResponseList;
-      });
+    return CompletableFuture.completedFuture(productResponseDTOs);
   }
 }

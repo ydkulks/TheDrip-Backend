@@ -18,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,9 +34,9 @@ import lombok.Setter;
 public class ProductCreationModel {
   @Id
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @Column(updatable = false, nullable = false)
+  @Column(name = "product_id",updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer product_id;
+  private Integer productId;
 
   @Column(name = "product_name", nullable = false)
   private String productName;
@@ -76,6 +77,14 @@ public class ProductCreationModel {
     inverseJoinColumns = @JoinColumn(name = "color_id")
   )
   private Set<ProductColorsModel> colors = new HashSet<>();
+
+  @OneToMany
+  @JoinTable(
+    name = "product_product_images",
+    joinColumns = @JoinColumn(name = "product_id"),
+    inverseJoinColumns = @JoinColumn(name = "img_id")
+  )
+  private Set<ProductImageModel> images = new HashSet<>();
 
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
