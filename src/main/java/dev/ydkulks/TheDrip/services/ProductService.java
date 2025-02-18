@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -194,39 +195,58 @@ public class ProductService {
       ProductSeriesModel series,
       Double minPrice,
       Double maxPrice,
+      String sortBy,
+      String sortDirection,
       Pageable pageable) {
 
     Specification<ProductModel> spec =
         Specification.where(ProductSpecification.hasCategory(category))
-            .and(ProductSpecification.hasUser(user))
-            .and(ProductSpecification.hasSeries(series))
-            .and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
+        .and(ProductSpecification.hasUser(user))
+        .and(ProductSpecification.hasSeries(series))
+        .and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
 
-    Page<ProductModel> productModelPage = productRepository.findAll(spec, pageable);
+    Sort sort = null;
+    if (sortBy != null && !sortBy.isEmpty()) {
+      Sort.Direction direction =
+        sortDirection != null && sortDirection.equalsIgnoreCase("desc")
+        ? Sort.Direction.DESC
+        : Sort.Direction.ASC;
+      sort = Sort.by(direction, sortBy);
+    }
+
+    // Create a new Pageable object with the Sort information
+    Pageable sortedPageable = pageable;
+    if (sort != null) {
+      sortedPageable =
+        PageRequest.of(
+            pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
+
+    Page<ProductModel> productModelPage = productRepository.findAll(spec, sortedPageable);
 
     List<ProductResponseDTO> productResponseDTOList =
-        productModelPage.getContent().stream()
-            .map(
-                product -> {
-                  List<String> s3Paths =
-                      product.getImages().stream()
-                          .map(ProductImageModel::getImg_path)
-                          .collect(Collectors.toList());
+      productModelPage.getContent().stream()
+      .map(
+          product -> {
+            List<String> s3Paths =
+              product.getImages().stream()
+              .map(ProductImageModel::getImg_path)
+              .collect(Collectors.toList());
 
-                  List<String> imageUrls =
-                      s3Paths.stream()
-                          .map(
-                              path ->
-                                  productImageService.getPresignedImageURL(
-                                      "thedrip", path))
-                          .collect(Collectors.toList());
+            List<String> imageUrls =
+              s3Paths.stream()
+              .map(
+                  path ->
+                  productImageService.getPresignedImageURL(
+                    "thedrip", path))
+              .collect(Collectors.toList());
 
-                  return new ProductResponseDTO(Optional.of(product), imageUrls);
-                })
-            .collect(Collectors.toList());
+            return new ProductResponseDTO(Optional.of(product), imageUrls);
+          })
+    .collect(Collectors.toList());
 
     return new PageImpl<>(
         productResponseDTOList, sortedPageable, productModelPage.getTotalElements());
-  }
+      }
 
 }

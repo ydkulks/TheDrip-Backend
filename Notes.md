@@ -30,7 +30,7 @@
     - [ ] Product reviews
     - [ ] Searching by name
     - [x] Filter by categories, seller, series
-    - [ ] Sorting by name, price, stock
+    - [x] Sorting by name, price, stock
     - [x] Pagination
     - [ ] Product sold
 - [ ] Cart

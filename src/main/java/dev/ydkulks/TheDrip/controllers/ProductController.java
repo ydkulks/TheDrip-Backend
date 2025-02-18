@@ -1,8 +1,5 @@
 package dev.ydkulks.TheDrip.controllers;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
-import dev.ydkulks.TheDrip.models.ProductModel;
+// import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductResponseDTO;
 import dev.ydkulks.TheDrip.models.ProductSeriesModel;
 import dev.ydkulks.TheDrip.models.UserModel;
@@ -73,6 +70,8 @@ public class ProductController {
       @RequestParam(required = false) Integer seriesId,
       @RequestParam(required = false) Double minPrice,
       @RequestParam(required = false) Double maxPrice,
+      @RequestParam(required = false) String sortBy,
+      @RequestParam(required = false) String sortDirection,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
     try {
@@ -90,7 +89,7 @@ public class ProductController {
       // Call the getProductByFilters service
       Page<ProductResponseDTO> products =
           productService.getProductsByFilters(
-              category, user, series, minPrice, maxPrice, pageable);
+              category, user, series, minPrice, maxPrice, sortBy, sortDirection, searchTerm, pageable);
 
       return new ResponseEntity<Page<ProductResponseDTO>>(products, HttpStatus.OK);
 
