@@ -1,5 +1,6 @@
 package dev.ydkulks.TheDrip.services;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -10,8 +11,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
@@ -22,13 +25,14 @@ import dev.ydkulks.TheDrip.models.ProductProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductProductSizesModel;
 import dev.ydkulks.TheDrip.models.ProductSeriesModel;
 import dev.ydkulks.TheDrip.models.ProductSizesModel;
+import dev.ydkulks.TheDrip.models.ProductSpecification;
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.repos.ProductCategoriesRepository;
 import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductProductColorsRepository;
 import dev.ydkulks.TheDrip.repos.ProductProductSizesRepository;
-import dev.ydkulks.TheDrip.repos.ProductResponseDTO;
+import dev.ydkulks.TheDrip.models.ProductResponseDTO;
 import dev.ydkulks.TheDrip.repos.ProductSeriesRepository;
 import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
 import dev.ydkulks.TheDrip.repos.UserRepo;
@@ -182,4 +186,47 @@ public class ProductService {
 
     return CompletableFuture.completedFuture(productResponseDTOs);
   }
+
+  @Transactional
+  public Page<ProductResponseDTO> getProductsByFilters(
+      ProductCategoriesModel category,
+      UserModel user,
+      ProductSeriesModel series,
+      Double minPrice,
+      Double maxPrice,
+      Pageable pageable) {
+
+    Specification<ProductModel> spec =
+        Specification.where(ProductSpecification.hasCategory(category))
+            .and(ProductSpecification.hasUser(user))
+            .and(ProductSpecification.hasSeries(series))
+            .and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
+
+    Page<ProductModel> productModelPage = productRepository.findAll(spec, pageable);
+
+    List<ProductResponseDTO> productResponseDTOList =
+        productModelPage.getContent().stream()
+            .map(
+                product -> {
+                  List<String> s3Paths =
+                      product.getImages().stream()
+                          .map(ProductImageModel::getImg_path)
+                          .collect(Collectors.toList());
+
+                  List<String> imageUrls =
+                      s3Paths.stream()
+                          .map(
+                              path ->
+                                  productImageService.getPresignedImageURL(
+                                      "thedrip", path))
+                          .collect(Collectors.toList());
+
+                  return new ProductResponseDTO(Optional.of(product), imageUrls);
+                })
+            .collect(Collectors.toList());
+
+    return new PageImpl<>(
+        productResponseDTOList, sortedPageable, productModelPage.getTotalElements());
+  }
+
 }

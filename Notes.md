@@ -29,7 +29,7 @@
     - [x] Get product details
     - [ ] Product reviews
     - [ ] Searching by name
-    - [ ] Filter by categories, seller, series
+    - [x] Filter by categories, seller, series
     - [ ] Sorting by name, price, stock
     - [x] Pagination
     - [ ] Product sold
@@ -246,7 +246,7 @@ Open the app and create server and database before moving on with the next step.
     - **Get all products**: Retrieve a list of all products with their details (e.g., pagination, sorting).
 
         ```sh
-        curl --location 'http://localhost:8080/api/products?page=0&size=10'
+        curl --location 'http://localhost:8080/api/test?userId=2&seriesId=1&minPrice=10&maxPrice=100&sortDirection=asc&sortBy=productPrice&page=0&size=10'
         ```
 
     - **Search product**: Search for products based on keywords, categories, brands, etc.

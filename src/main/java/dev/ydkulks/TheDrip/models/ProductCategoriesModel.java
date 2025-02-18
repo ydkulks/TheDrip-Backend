@@ -27,11 +27,12 @@ import lombok.Setter;
 public class ProductCategoriesModel {
   @Id
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @Column(updatable = false, nullable = false)
+  @Column(name = "category_id", updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer category_id;
+  private Integer categoryId;
 
-  private String category_name;
+  @Column(name = "category_name", nullable = false)
+  private String categoryName;
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @Column(updatable = false, insertable = false)

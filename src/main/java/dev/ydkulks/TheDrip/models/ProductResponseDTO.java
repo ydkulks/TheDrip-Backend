@@ -1,12 +1,12 @@
-package dev.ydkulks.TheDrip.repos;
+package dev.ydkulks.TheDrip.models;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import dev.ydkulks.TheDrip.models.ProductColorsModel;
-import dev.ydkulks.TheDrip.models.ProductModel;
-import dev.ydkulks.TheDrip.models.ProductSizesModel;
+// import dev.ydkulks.TheDrip.models.ProductColorsModel;
+// import dev.ydkulks.TheDrip.models.ProductModel;
+// import dev.ydkulks.TheDrip.models.ProductSizesModel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,7 +35,7 @@ public class ProductResponseDTO {
         this.productPrice = product.get().getProductPrice();
         this.productStock = product.get().getProductStock();
         this.seriesName = product.get().getSeries().getSeries_name();
-        this.categoryName = product.get().getCategory().getCategory_name();
+        this.categoryName = product.get().getCategory().getCategoryName();
         this.sellerName = product.get().getUser().getUsername();
         this.sizes = product.get().getSizes()
           .stream()
