@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.ydkulks.TheDrip.models.ProductCreationDTO;
-import dev.ydkulks.TheDrip.models.ProductCreationModel;
+import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.repos.ProductResponseDTO;
 import dev.ydkulks.TheDrip.services.ProductService;
 
@@ -29,7 +29,7 @@ public class ProductController {
   @PostMapping("/test")
   public ResponseEntity<String> test(@RequestBody ProductCreationDTO data) {
     try {
-      ProductCreationModel product = productService.createOrUpdateProduct(
+      ProductModel product = productService.createOrUpdateProduct(
         data.getProductName(),
         data.getCategoryId(),
         data.getUserId(),

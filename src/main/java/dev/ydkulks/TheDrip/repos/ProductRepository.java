@@ -7,12 +7,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import dev.ydkulks.TheDrip.models.ProductCreationModel;
+import dev.ydkulks.TheDrip.models.ProductModel;
 
 // JpaRepository<TableModel, PrimaryKeyType>
 @Repository
-public interface ProductRepository extends JpaRepository<ProductCreationModel, Integer> {
-  Optional<ProductCreationModel> findByProductName(String productName);
-  Optional<ProductCreationModel> findByProductId(Integer productId);
-  Page<ProductCreationModel> findAll(Pageable pageable);
+public interface ProductRepository extends JpaRepository<ProductModel, Integer> {
+  Optional<ProductModel> findByProductName(String productName);
+  Optional<ProductModel> findByProductId(Integer productId);
+  Page<ProductModel> findAll(Pageable pageable);
 }

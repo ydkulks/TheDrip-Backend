@@ -25,7 +25,7 @@ import dev.ydkulks.TheDrip.services.ProductImageService;
 import dev.ydkulks.TheDrip.services.ProductService;
 import jakarta.transaction.Transactional;
 import dev.ydkulks.TheDrip.models.ProductCreationDTO;
-import dev.ydkulks.TheDrip.models.ProductCreationModel;
+import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.models.ProductProductImageModel;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -53,7 +53,7 @@ public class SellerController {
       // System.out.println("SizeId: "+ data.getProductSizes());
       // System.out.println("ColorId: "+ data.getProductColors());
 
-      ProductCreationModel product = productService.createOrUpdateProduct(
+      ProductModel product = productService.createOrUpdateProduct(
         data.getProductName(),
         data.getCategoryId(),
         data.getUserId(),

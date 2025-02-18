@@ -1,6 +1,8 @@
 package dev.ydkulks.TheDrip.models;
 
 import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -12,6 +14,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,16 +34,58 @@ import lombok.Setter;
 public class ProductModel {
   @Id
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @Column(updatable = false, nullable = false)
+  @Column(name = "product_id",updatable = false, nullable = false)
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer product_id;
-  private String product_name;
-  private Integer category_id;
-  private Integer user_id;
-  private Integer series_id;
-  private Float product_price;
-  private String product_description;
-  private Integer product_stock;
+  private Integer productId;
+
+  @Column(name = "product_name", nullable = false)
+  private String productName;
+
+  @ManyToOne
+  @JoinColumn(name = "category_id", nullable = false)
+  private ProductCategoriesModel category;
+
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private UserModel user;
+
+  @ManyToOne
+  @JoinColumn(name = "series_id", nullable = false)
+  private ProductSeriesModel series;
+
+  @Column(name = "product_price", nullable = false)
+  private Double productPrice;
+
+  @Column(name = "product_description", columnDefinition = "TEXT")
+  private String productDescription;
+
+  @Column(name = "product_stock", nullable = false)
+  private Integer productStock;
+
+  @ManyToMany
+  @JoinTable(
+    name = "product_product_sizes",
+    joinColumns = @JoinColumn(name = "product_id"),
+    inverseJoinColumns = @JoinColumn(name = "size_id")
+  )
+  private Set<ProductSizesModel> sizes = new HashSet<>();
+
+  @ManyToMany
+  @JoinTable(
+    name = "product_product_colors",
+    joinColumns = @JoinColumn(name = "product_id"),
+    inverseJoinColumns = @JoinColumn(name = "color_id")
+  )
+  private Set<ProductColorsModel> colors = new HashSet<>();
+
+  @OneToMany
+  @JoinTable(
+    name = "product_product_images",
+    joinColumns = @JoinColumn(name = "product_id"),
+    inverseJoinColumns = @JoinColumn(name = "img_id")
+  )
+  private Set<ProductImageModel> images = new HashSet<>();
+
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @Column(updatable = false, insertable = false)

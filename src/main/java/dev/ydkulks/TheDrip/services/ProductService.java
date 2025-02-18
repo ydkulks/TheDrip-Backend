@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
-import dev.ydkulks.TheDrip.models.ProductCreationModel;
+import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.models.ProductProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductProductSizesModel;
@@ -49,7 +49,7 @@ public class ProductService {
 
   // NOTE: Create
   @Transactional
-  public ProductCreationModel createOrUpdateProduct(
+  public ProductModel createOrUpdateProduct(
     String productName,
     Integer categoryId,
     Integer userId,
@@ -61,7 +61,7 @@ public class ProductService {
     List<Integer> colorIds
   ) {
     // Check if product exists
-    Optional<ProductCreationModel> existingProductOpt = productRepository.findByProductName(productName);
+    Optional<ProductModel> existingProductOpt = productRepository.findByProductName(productName);
     ProductCategoriesModel category = productCategoriesRepository
       .findById(categoryId)
       .orElseThrow(() ->
@@ -74,12 +74,12 @@ public class ProductService {
       .findById(seriesId)
       .orElseThrow(() -> new IllegalArgumentException("Invalid series ID: " + seriesId));
 
-    ProductCreationModel product;
+    ProductModel product;
     if (existingProductOpt.isPresent()) {
       product = existingProductOpt.get();
       System.out.println("Updating existing product: " + product.getProductId());
     } else {
-      product = new ProductCreationModel();
+      product = new ProductModel();
       System.out.println("Creating new product");
     }
 
@@ -137,7 +137,7 @@ public class ProductService {
   // NOTE: Get
   @Transactional
   public ProductResponseDTO getProductDetails(int id) {
-    Optional<ProductCreationModel> product = productRepository.findByProductId(id);
+    Optional<ProductModel> product = productRepository.findByProductId(id);
     if(product.isPresent()){
       List<String> s3Paths = product.get().getImages()
         .stream()
@@ -157,7 +157,7 @@ public class ProductService {
   @Transactional
   public CompletableFuture<List<ProductResponseDTO>> getAllProductDetails(int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
-    Page<ProductCreationModel> products = productRepository.findAll(pageable);
+    Page<ProductModel> products = productRepository.findAll(pageable);
 
     // Check if the page is valid
     if (page >= products.getTotalPages()) {

@@ -189,50 +189,6 @@ public class ProductImageService {
               return List.of(); // Return empty list on failure
             });
   }
-  /*
-  public String getPresignedImageURL(String bucketName, String keyName) {
-    try (S3Presigner presigner = S3Presigner.builder()
-        .region(Region.AP_SOUTH_1)
-        .credentialsProvider(DefaultCredentialsProvider.create())
-        .build()) {
-
-      GetObjectRequest objectRequest = GetObjectRequest.builder()
-          .bucket(bucketName)
-          .key(keyName)
-          .build();
-
-      GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-          .signatureDuration(Duration.ofMinutes(10))
-          .getObjectRequest(objectRequest)
-          .build();
-
-      PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(presignRequest);
-      // logger.info("Presigned URL: [{}]", presignedRequest.url().toString());
-      // logger.info("HTTP method: [{}]", presignedRequest.httpRequest().method());
-
-      return presignedRequest.url().toExternalForm();
-    }
-  }
-  public CompletableFuture<List<String>> getPresignedImageURLs(String bucket, String prefix) {
-        ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
-            .bucket(bucket)
-            .prefix(prefix)
-            .build();
-
-        return getAsyncClient().listObjectsV2(listRequest)
-            .thenApply(listResponse ->
-                listResponse.contents().stream()
-                    .map(S3Object::key)
-                    // .map(this::getPresignedImageURL)  // Generate presigned URL for each key
-                    .map(key -> getPresignedImageURL(bucket,key))
-                    .collect(Collectors.toList())
-            )
-            .exceptionally(e -> {
-                logger.error("Error fetching objects from S3", e);
-                return List.of(); // Return empty list on failure
-            });
-    }
-  */
 
     // Get all images for a specific product
     public CompletableFuture<List<String>> getImagesForProduct(String bucket, String sellerName, String productId) {
