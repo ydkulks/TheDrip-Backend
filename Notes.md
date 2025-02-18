@@ -8,8 +8,10 @@
 - [x] Authorization
 - [x] Role based auth for API endpoints
 - [ ] User profile
+    - [ ] Verify if user exists befor user creation
     - [ ] Get user data
     - [ ] Update user data
+    - [ ] Password reset
     - [ ] Delete user data
 - [ ] Products
     - [x] Upload images
@@ -18,6 +20,7 @@
             - [x] Upload multiple images
             - [x] Get presigned link for one image
             - [x] Get presigned link for more than one image
+            - [x] Fetch presigned link only if existing link is expired
             - [x] Update images
             - [x] Delete images
     - [x] Upload product details
@@ -144,18 +147,114 @@ Open the app and create server and database before moving on with the next step.
     ```
 
 ## 🔌 API Endpoints
-### Products
-- **`GET /products/{id}`**: Retrieve specific product details by its ID.
-- **`GET /products`**: Retrieve a list of all products with their details (e.g., pagination, sorting).
-- **`GET /products/search`**: Search for products based on keywords, categories, brands, etc.
-- **`GET /products/categories`**: Retrieve a list of product categories with their subcategories and products.
-- **`GET /products/brands`**: Retrieve a list of product brands with their associated products.
-- **`GET /products/tags`**: Retrieve a list of products tagged with specific keywords or tags.
-- **`GET /products/images`**: Retrieve a list of product images (e.g., thumbnails, high-resolution).
-- **`GET /products/reviews`**: Retrieve a list of product reviews and ratings.
-- **`GET /products?filter=[key]=value`**: Apply filters to products (e.g., price range, brand).
-- **`GET /products?sort=[field]&order=[asc/desc]`**: Sort products based on a specific field in ascending or descending order.
-- **`GET /products?page={number}&limit={size}`**: Retrieve paginated list of products with specified page number and limit size.
+### User
+1. **Signup**: Create user account with 3 types of roles - `Admin`, `Seller`, `Customer`
+
+    ```sh
+    curl --location 'http://localhost:8080/api/signup' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "email":"admin@gmail.com",
+        "username":"admin",
+        "password":"admin@123",
+        "role":"Admin"
+    }'
+    ```
+
+2. **Login**
+
+    ```sh
+    curl --location 'http://localhost:8080/api/login' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "username": "admin",
+        "password": "admin@123"
+    }'
+    ```
+
+3. **Products**
+    - **Create or Update product**: Create a new product under a user id or update an existing one.
+
+        ```sh
+        curl --location 'http://localhost:8080/seller/product' \
+        --header 'Content-Type: application/json' \
+        --header 'Authorization: Bearer {TOKEN}' \
+        --data '{
+          "productName": "Edgerunner Blue Cargo Sweatpants",
+          "categoryId": 7,
+          "userId": 2,
+          "seriesId": 1,
+          "productPrice": 45.00,
+          "productDescription": "Printed logo on the pocket. Drawstring waist, Side pocket. Zip back pocket",
+          "productStock": 100,
+          "productSizes": [
+            1, 3, 5
+          ],
+          "productColors": [1, 2, 3]
+        }'
+        ```
+
+    - **Upload or Update product images**: Upload product images to S3 bucket.
+
+        ```sh
+        curl --location 'http://localhost:8080/seller/{username}/{product_id}/image' \
+        --header 'Authorization: Bearer {TOKEN}' \
+        --form 'file=@"{path/to/image/file.jpg}"' \
+        --form 'file=@"{path/to/image/file.jpg}"'
+        ```
+
+    - **Get pre-signed URL of images**: Get a limited access link to view images.
+
+        ```sh
+        # Get one image
+        curl --location 'http://localhost:8080/seller/{username}/{product_id}/{filename}' \
+        --header 'Authorization: Bearer {TOKEN}'
+        # Get all the images from one product
+        curl --location 'http://localhost:8080/seller/{username}/{product_id}/image' \
+        --header 'Authorization: Bearer {TOKEN}'
+        # Get all the images from all the products of one user
+        curl --location 'http://localhost:8080/seller/{username}/product/image' \
+        --header 'Authorization: Bearer {TOKEN}'
+        # Get all the images from all the products of all the users
+        curl --location 'http://localhost:8080/seller/all/product/image' \
+        --header 'Authorization: Bearer {TOKEN}'
+        ```
+
+    - **Delete product images**: Delete product images to S3 bucket.
+
+        ```sh
+        # Delete one image from one product
+        curl --location --request DELETE 'http://localhost:8080/seller/{username}/{product_id}/{filename}' \
+        --header 'Authorization: Bearer {TOKEN}'
+        # Delete all the images from one product
+        curl --location --request DELETE 'http://localhost:8080/seller/{username}/{product_id}/image' \
+        --header 'Authorization: Bearer {TOKEN}'
+        # Delete all the images from  all the products of one user
+        curl --location --request DELETE 'http://localhost:8080/seller/{username}/product/image' \
+        --header 'Authorization: Bearer {TOKEN}'
+        # Delete all the images from  all the products of all the user
+        curl --location --request DELETE 'http://localhost:8080/seller/all/product/image' \
+        --header 'Authorization: Bearer {TOKEN}'
+        ```
+
+    - **Get product by ID**: Retrieve specific product details by its ID.
+
+        ```sh
+        curl --location 'http://localhost:8080/api/products?id=1'
+        ```
+
+    - **Get all products**: Retrieve a list of all products with their details (e.g., pagination, sorting).
+
+        ```sh
+        curl --location 'http://localhost:8080/api/products?page=0&size=10'
+        ```
+
+    - **Search product**: Search for products based on keywords, categories, brands, etc.
+    - **`GET /products/tags`**: Retrieve a list of products tagged with specific keywords or tags.
+    - **`GET /products/reviews`**: Retrieve a list of product reviews and ratings.
+    - **`GET /products?filter=[key]=value`**: Apply filters to products (e.g., price range, brand).
+    - **`GET /products?sort=[field]&order=[asc/desc]`**: Sort products based on a specific field in ascending or descending order.
+    - **Delete product**: Delete a product from the database.
 
 ## 🧪 TDD
 > [!Tip]

@@ -7,12 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.ydkulks.TheDrip.models.ProductModel;
-// import dev.ydkulks.TheDrip.repos.ProductProjectionDTO;
+import dev.ydkulks.TheDrip.models.ProductCreationDTO;
+import dev.ydkulks.TheDrip.models.ProductCreationModel;
 import dev.ydkulks.TheDrip.repos.ProductResponseDTO;
 import dev.ydkulks.TheDrip.services.ProductService;
 
@@ -23,14 +25,28 @@ public class ProductController {
   @Autowired
   private ProductService productService;
 
+  // NOTE: test controller
+  @PostMapping("/test")
+  public ResponseEntity<String> test(@RequestBody ProductCreationDTO data) {
+    try {
+      ProductCreationModel product = productService.createOrUpdateProduct(
+        data.getProductName(),
+        data.getCategoryId(),
+        data.getUserId(),
+        data.getSeriesId(),
+        data.getProductPrice(),
+        data.getProductDescription(),
+        data.getProductStock(),
+        data.getProductSizes(),
+        data.getProductColors()
+      );
+      return new ResponseEntity<>(product.getProductName(), HttpStatus.CREATED);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST); // Or handle the error more specifically
+    }
+  }
+
   // NOTE: Get product by ID
-  // @GetMapping("/product")
-  // public ResponseEntity<ProductModel> product(@RequestParam(defaultValue = "1") int id) {
-  //   // System.out.println("ProdId: " + id);
-  //   return productService.getProductDetails(id)
-  //     .map(ResponseEntity::ok)
-  //     .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-  // }
   @GetMapping("/product")
   public ResponseEntity<ProductResponseDTO> product(@RequestParam(defaultValue = "1") int id) {
     // System.out.println("ProdId: " + id);

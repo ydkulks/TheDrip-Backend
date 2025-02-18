@@ -29,8 +29,10 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -104,6 +106,90 @@ public class ProductImageService {
   }
 
   // NOTE: Get the presigned url of the object for limited duration from S3 bucket
+  private final Map<String, CachedPresignedUrl> presignedUrlCache =
+      new ConcurrentHashMap<>();
+
+  private static final Duration PRESIGNED_URL_DURATION = Duration.ofMinutes(10);
+  private static final Duration REFRESH_THRESHOLD = Duration.ofMinutes(2);
+
+  private static class CachedPresignedUrl {
+    private final String url;
+    private final Instant expiration;
+
+    public CachedPresignedUrl(String url, Instant expiration) {
+      this.url = url;
+      this.expiration = expiration;
+    }
+
+    public String getUrl() {
+      return url;
+    }
+
+    public Instant getExpiration() {
+      return expiration;
+    }
+
+    public boolean isExpired(Duration refreshThreshold) {
+      return Instant.now().plus(refreshThreshold).isAfter(expiration);
+    }
+  }
+
+  private String generatePresignedUrl(String bucketName, String keyName) {
+    try (S3Presigner presigner =
+        S3Presigner.builder()
+            .region(Region.AP_SOUTH_1)
+            .credentialsProvider(DefaultCredentialsProvider.create())
+            .build()) {
+
+      GetObjectRequest objectRequest =
+          GetObjectRequest.builder().bucket(bucketName).key(keyName).build();
+
+      GetObjectPresignRequest presignRequest =
+          GetObjectPresignRequest.builder()
+              .signatureDuration(PRESIGNED_URL_DURATION)
+              .getObjectRequest(objectRequest)
+              .build();
+
+      PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(presignRequest);
+      return presignedRequest.url().toExternalForm();
+    }
+  }
+
+  public String getPresignedImageURL(String bucketName, String keyName) {
+    String cacheKey = bucketName + "/" + keyName;
+    CachedPresignedUrl cachedUrl = presignedUrlCache.get(cacheKey);
+
+    if (cachedUrl != null && !cachedUrl.isExpired(REFRESH_THRESHOLD)) {
+      return cachedUrl.getUrl(); // Return cached URL if still valid
+    }
+
+    // Generate a new URL and update the cache
+    String newUrl = generatePresignedUrl(bucketName, keyName);
+    Instant expiration = Instant.now().plus(PRESIGNED_URL_DURATION);
+    presignedUrlCache.put(cacheKey, new CachedPresignedUrl(newUrl, expiration));
+    return newUrl;
+  }
+
+  public CompletableFuture<List<String>> getPresignedImageURLs(
+      String bucket, String prefix) {
+    ListObjectsV2Request listRequest =
+        ListObjectsV2Request.builder().bucket(bucket).prefix(prefix).build();
+
+    return getAsyncClient()
+        .listObjectsV2(listRequest)
+        .thenApply(
+            listResponse ->
+                listResponse.contents().stream()
+                    .map(S3Object::key)
+                    .map(key -> getPresignedImageURL(bucket, key))
+                    .collect(Collectors.toList()))
+        .exceptionally(
+            e -> {
+              logger.error("Error fetching objects from S3", e);
+              return List.of(); // Return empty list on failure
+            });
+  }
+  /*
   public String getPresignedImageURL(String bucketName, String keyName) {
     try (S3Presigner presigner = S3Presigner.builder()
         .region(Region.AP_SOUTH_1)
@@ -146,6 +232,7 @@ public class ProductImageService {
                 return List.of(); // Return empty list on failure
             });
     }
+  */
 
     // Get all images for a specific product
     public CompletableFuture<List<String>> getImagesForProduct(String bucket, String sellerName, String productId) {
