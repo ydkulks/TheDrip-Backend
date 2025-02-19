@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
-// import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductResponseDTO;
 import dev.ydkulks.TheDrip.models.ProductSeriesModel;
 import dev.ydkulks.TheDrip.models.UserModel;

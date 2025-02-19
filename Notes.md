@@ -13,6 +13,9 @@
     - [ ] Update user data
     - [ ] Password reset
     - [ ] Delete user data
+    - [ ] Product reviews
+    - [ ] Cart
+    - [ ] Order
 - [ ] Products
     - [x] Upload images
         - [x] Base64
@@ -27,15 +30,12 @@
     - [x] Update product details
     - [x] Link images on S3 to its associated product
     - [x] Get product details
-    - [ ] Product reviews
     - [x] Searching by name
     - [x] Filter by categories, seller, series
     - [x] Sorting by name, price, stock
     - [x] Pagination
     - [ ] Product sold
-    - [ ] Delete product
-- [ ] Cart
-- [ ] Order
+    - [x] Delete product
 - [ ] Feedback form
 
 ## ⚠️ Pre-requizits:
@@ -241,35 +241,39 @@ Open the app and create server and database before moving on with the next step.
     - **Get product by ID**: Retrieve specific product details by its ID.
 
         ```sh
-        curl --location 'http://localhost:8080/api/products?id=1'
+        curl --location 'http://localhost:8080/api/product?id=1'
         ```
 
     - **Get all products**: Retrieve a list of all products with their details (e.g., pagination, sorting).
 
         ```sh
-        curl --location 'http://localhost:8080/api/test?page=0&size=10'
+        curl --location 'http://localhost:8080/api/products?page=0&size=10'
         ```
 
     - **Search products**: Search for products based on title and description.
 
         ```sh
-        curl --location 'http://localhost:8080/api/test?searchTerm=sweatpants&page=0&size=10'
+        curl --location 'http://localhost:8080/api/products?searchTerm=sweatpants&page=0&size=10'
         ```
 
     - **`GET /products/reviews`**: Retrieve a list of product reviews and ratings.
     - **Filter products**: Apply filters to products (e.g., price range, brand).
 
         ```sh
-        curl --location 'http://localhost:8080/api/test?userId=2&seriesId=1&minPrice=10&maxPrice=100&page=0&size=10'
+        curl --location 'http://localhost:8080/api/products?userId=2&seriesId=1&minPrice=10&maxPrice=100&page=0&size=10'
         ```
 
     - **Sort products**: Sort products based on a specific field in ascending or descending order.
 
         ```sh
-        curl --location 'http://localhost:8080/api/test?sortDirection=asc&sortBy=productPrice&page=0&size=10'
+        curl --location 'http://localhost:8080/api/products?sortDirection=asc&sortBy=productPrice&page=0&size=10'
         ```
 
     - **Delete product**: Delete a product from the database.
+
+        ```sh
+        curl --location 'http://localhost:8080/seller/product?productId=4
+        ```
 
 ## 🧪 TDD
 > [!Tip]

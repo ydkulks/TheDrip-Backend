@@ -27,5 +27,6 @@ public class ProductImageModel {
   private Integer img_id;
   private String img_name;
   private String img_type;
-  private String img_path;
+  @Column(name = "img_path", nullable = false)
+  private String imgPath;
 }

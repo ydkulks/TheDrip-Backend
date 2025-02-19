@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -206,7 +207,7 @@ public class ProductImageService {
     }
 
     // NOTE: Delete images from S3 bucket
-    public CompletableFuture<Void> deleteMultipleImages(String bucket, String prefix) {
+    public CompletableFuture<List<String>> deleteMultipleImages(String bucket, String prefix) {
       ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
         .bucket(bucket)
         .prefix(prefix)
@@ -214,14 +215,27 @@ public class ProductImageService {
 
       return getAsyncClient().listObjectsV2(listRequest)
         .thenCompose(listResponse -> {
-          List<ObjectIdentifier> objectIdentifiers = listResponse.contents().stream()
-            .map(s3Object -> ObjectIdentifier.builder().key(s3Object.key()).build())
+          List<S3Object> s3Objects = listResponse.contents();
+          List<String> objectKeys = s3Objects.stream()
+            .map(S3Object::key)
             .collect(Collectors.toList());
 
-          if (objectIdentifiers.isEmpty()) {
+          if (objectKeys.isEmpty()) {
             logger.info("No objects found for prefix: {}", prefix);
-            return CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(new ArrayList<>()); // Return empty list
           }
+
+          List<ObjectIdentifier> objectIdentifiers = objectKeys.stream()
+            .map(key -> ObjectIdentifier.builder().key(key).build())
+            .collect(Collectors.toList());
+          // List<ObjectIdentifier> objectIdentifiers = listResponse.contents().stream()
+          //   .map(s3Object -> ObjectIdentifier.builder().key(s3Object.key()).build())
+          //   .collect(Collectors.toList());
+
+          // if (objectIdentifiers.isEmpty()) {
+          //   logger.info("No objects found for prefix: {}", prefix);
+          //   return CompletableFuture.completedFuture(null);
+          // }
 
           Delete deleteObjects = Delete.builder()
             .objects(objectIdentifiers)
@@ -233,16 +247,19 @@ public class ProductImageService {
             .build();
 
           return getAsyncClient().deleteObjects(deleteRequest)
-            .thenAccept(response -> logger.info("Successfully deleted {} objects under prefix: {}", objectIdentifiers.size(), prefix))
+            .thenApply(response -> {
+              logger.info("Successfully deleted {} objects under prefix: {}", objectIdentifiers.size(), prefix);
+              return objectKeys;
+            })
             .exceptionally(e -> {
               logger.error("Failed to delete objects from S3", e);
-              return null;
+              return new ArrayList<>();
             });
         });
     }
 
-    public void deleteImagesForProduct(String bucket, String sellerName, String productName) {
-        deleteMultipleImages(bucket, sellerName + "/" + productName + "/");
+    public CompletableFuture<List<String>> deleteImagesForProduct(String bucket, String sellerName, Integer productId) {
+        return deleteMultipleImages(bucket, sellerName + "/" + productId + "/");
     }
 
     public void deleteImagesForSeller(String bucket, String sellerName) {

@@ -82,7 +82,7 @@ public class SellerController {
       ProductImageModel image = new ProductImageModel();
       image.setImg_name(file.getOriginalFilename());
       image.setImg_type(file.getContentType());
-      image.setImg_path(String.format("%s/%s/%s", username, productId, file.getOriginalFilename()));
+      image.setImgPath(String.format("%s/%s/%s", username, productId, file.getOriginalFilename()));
       ProductImageModel savedImage = productImageRepository.save(image);
 
       int imgId = savedImage.getImg_id();
@@ -122,7 +122,7 @@ public class SellerController {
   }
 
   @DeleteMapping("/{username}/{productId}/image")
-  public void deleteImages(@PathVariable String username, @PathVariable String productId) {
+  public void deleteImages(@PathVariable String username, @PathVariable Integer productId) {
     productImageService.deleteImagesForProduct("thedrip", username, productId);
   }
 
@@ -134,5 +134,18 @@ public class SellerController {
   @DeleteMapping("/all/product/image")
   public void deleteImages() {
     productImageService.deleteAllImages("thedrip");
+  }
+
+  @DeleteMapping("/product")
+  public ResponseEntity<?> deleteProductById(@RequestParam(required = true) Integer productId) {
+    try {
+      productService.deleteProduct(productId);
+      return new ResponseEntity<>(productId, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

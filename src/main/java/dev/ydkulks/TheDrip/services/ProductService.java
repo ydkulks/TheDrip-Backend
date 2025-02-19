@@ -1,6 +1,5 @@
 package dev.ydkulks.TheDrip.services;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +29,7 @@ import dev.ydkulks.TheDrip.models.ProductSpecification;
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.repos.ProductCategoriesRepository;
 import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
+import dev.ydkulks.TheDrip.repos.ProductImageRepository;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductProductColorsRepository;
 import dev.ydkulks.TheDrip.repos.ProductProductSizesRepository;
@@ -51,6 +51,7 @@ public class ProductService {
   @Autowired UserRepo userRepo;
   @Autowired ProductSizesRepository productSizesRepository;
   @Autowired ProductRepository productRepository;
+  @Autowired ProductImageRepository productImageRepository;
 
   // NOTE: Create
   @Transactional
@@ -146,7 +147,7 @@ public class ProductService {
     if(product.isPresent()){
       List<String> s3Paths = product.get().getImages()
         .stream()
-        .map(ProductImageModel::getImg_path)
+        .map(ProductImageModel::getImgPath)
         .collect(Collectors.toList());
 
       List<String> imageUrls = s3Paths
@@ -173,7 +174,7 @@ public class ProductService {
       .map(product -> {
         List<String> s3Paths = product.getImages()
           .stream()
-          .map(ProductImageModel::getImg_path)
+          .map(ProductImageModel::getImgPath)
           .collect(Collectors.toList());
 
         List<String> imageUrls = s3Paths
@@ -232,7 +233,7 @@ public class ProductService {
           product -> {
             List<String> s3Paths =
               product.getImages().stream()
-              .map(ProductImageModel::getImg_path)
+              .map(ProductImageModel::getImgPath)
               .collect(Collectors.toList());
 
             List<String> imageUrls =
@@ -247,8 +248,24 @@ public class ProductService {
           })
     .collect(Collectors.toList());
 
-    return new PageImpl<>(
-        productResponseDTOList, sortedPageable, productModelPage.getTotalElements());
-      }
+    return new PageImpl<>(productResponseDTOList, sortedPageable, productModelPage.getTotalElements());
+  }
 
+  @Transactional
+  public Optional<ProductModel> deleteProduct(Integer productId) {
+    ProductModel product = productRepository.findById(productId).orElseThrow(() ->
+        new IllegalArgumentException("Invalid product ID: " + productId)
+      );
+    List<String> urls = productImageService.deleteImagesForProduct(
+        "thedrip",
+        product.getUser().getUsername(),
+        product.getProductId()
+      ).join();
+    if(urls != null && !urls.isEmpty()){
+      List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls);
+      productImageRepository.deleteAll(imagesToDelete);
+      productRepository.delete(product);
+    }
+    return null;
+  }
 }
