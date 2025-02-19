@@ -18,6 +18,7 @@ public class ProductCreationDTO {
     private Double productPrice;
     private String productDescription;
     private Integer productStock;
+    private Integer productSold;
     private List<Integer> productSizes;
     private List<Integer> productColors;
 }

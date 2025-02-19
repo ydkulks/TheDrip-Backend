@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS product (
 	product_price MONEY NOT NULL CHECK (product_price > 0),
 	product_description TEXT,
 	product_stock INTEGER CHECK (product_stock >= 0),
+  product_sold INTEGER DEFAULT NULL,
 	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -77,6 +78,8 @@ CREATE TABLE IF NOT EXISTS product_series (
 );
 -- ALTER TABLE product
 -- ADD COLUMN series_id INTEGER REFERENCES product_series(series_id) ON DELETE SET NULL;
+-- ALTER TABLE product
+-- ADD COLUMN product_sold INTEGER DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS product_images (
 	img_id SERIAL PRIMARY KEY,

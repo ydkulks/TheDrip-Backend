@@ -18,6 +18,7 @@ public class ProductResponseDTO {
     private String productDescription;
     private Double productPrice;
     private Integer productStock;
+    private Integer productSold;
     private String seriesName;
     private String categoryName;
     private String sellerName;
@@ -34,6 +35,7 @@ public class ProductResponseDTO {
         this.productDescription = product.get().getProductDescription();
         this.productPrice = product.get().getProductPrice();
         this.productStock = product.get().getProductStock();
+        this.productSold = product.get().getProductSold();
         this.seriesName = product.get().getSeries().getSeries_name();
         this.categoryName = product.get().getCategory().getCategoryName();
         this.sellerName = product.get().getUser().getUsername();

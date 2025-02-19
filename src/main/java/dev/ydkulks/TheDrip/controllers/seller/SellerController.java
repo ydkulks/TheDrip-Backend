@@ -61,6 +61,7 @@ public class SellerController {
         data.getProductPrice(),
         data.getProductDescription(),
         data.getProductStock(),
+        data.getProductSold(),
         data.getProductSizes(),
         data.getProductColors()
       );

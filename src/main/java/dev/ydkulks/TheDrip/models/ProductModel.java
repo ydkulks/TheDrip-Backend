@@ -62,6 +62,9 @@ public class ProductModel {
   @Column(name = "product_stock", nullable = false)
   private Integer productStock;
 
+  @Column(name = "product_sold", nullable = true)
+  private Integer productSold;
+
   @ManyToMany
   @JoinTable(
     name = "product_product_sizes",

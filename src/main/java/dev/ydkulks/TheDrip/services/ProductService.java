@@ -63,6 +63,7 @@ public class ProductService {
     Double productPrice,
     String productDescription,
     Integer productStock,
+    Integer productSold,
     List<Integer> sizeIds,
     List<Integer> colorIds
   ) {
@@ -96,6 +97,7 @@ public class ProductService {
     product.setProductPrice(productPrice);
     product.setProductDescription(productDescription);
     product.setProductStock(productStock);
+    product.setProductSold(productSold);
 
     // Handle sizes
     Set<ProductSizesModel> sizes = new HashSet<>();

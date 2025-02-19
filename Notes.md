@@ -8,7 +8,7 @@
 - [x] Authorization
 - [x] Role based auth for API endpoints
 - [ ] User profile
-    - [ ] Verify if user exists befor user creation
+    - [ ] Verify if user exists before user creation
     - [ ] Get user data
     - [ ] Update user data
     - [ ] Password reset
@@ -16,7 +16,7 @@
     - [ ] Product reviews
     - [ ] Cart
     - [ ] Order
-- [ ] Products
+- [x] Products
     - [x] Upload images
         - [x] Base64
         - [x] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
@@ -34,7 +34,7 @@
     - [x] Filter by categories, seller, series
     - [x] Sorting by name, price, stock
     - [x] Pagination
-    - [ ] Product sold
+    - [x] Product sold
     - [x] Delete product
 - [ ] Feedback form
 
@@ -82,7 +82,7 @@ There are multiple methods to initialize the spring boot project:
 > [!Note]
 > For this project, if you are running the following commands for the first
 > time; it will download specific gradle binary version to build the project.
-> This can be commited to version controle.
+> This can be committed to version control.
 
 > [!Tip]
 > If you are not able to download the gradle binary when you run the project
@@ -188,6 +188,7 @@ Open the app and create server and database before moving on with the next step.
           "productPrice": 45.00,
           "productDescription": "Printed logo on the pocket. Drawstring waist, Side pocket. Zip back pocket",
           "productStock": 100,
+          "productSold": 0,
           "productSizes": [
             1, 3, 5
           ],
