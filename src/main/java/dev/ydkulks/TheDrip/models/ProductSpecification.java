@@ -37,4 +37,29 @@ public class ProductSpecification {
       }
     };
   }
+
+  public static Specification<ProductModel> hasSearchTerm(String searchTerm) {
+    return (root, query, criteriaBuilder) -> {
+      if (searchTerm == null || searchTerm.isEmpty()) {
+        return criteriaBuilder.conjunction();
+      }
+
+      String searchTermLower = searchTerm.toLowerCase();
+
+      return criteriaBuilder.or(
+          criteriaBuilder.like(
+              criteriaBuilder.lower(root.get("productName")), "%" + searchTermLower + "%"),
+          criteriaBuilder.like(
+              criteriaBuilder.lower(root.get("productDescription")), "%" + searchTermLower + "%"),
+          criteriaBuilder.like(
+              criteriaBuilder.lower(root.get("category").get("categoryName")),
+              "%" + searchTermLower + "%"),
+          criteriaBuilder.like(
+              criteriaBuilder.lower(root.get("series").get("series_name")),
+              "%" + searchTermLower + "%"),
+          criteriaBuilder.like(
+              criteriaBuilder.lower(root.get("user").get("username")),
+              "%" + searchTermLower + "%"));
+    };
+  }
 }

@@ -197,12 +197,14 @@ public class ProductService {
       Double maxPrice,
       String sortBy,
       String sortDirection,
+      String searchTerm,
       Pageable pageable) {
 
     Specification<ProductModel> spec =
         Specification.where(ProductSpecification.hasCategory(category))
         .and(ProductSpecification.hasUser(user))
         .and(ProductSpecification.hasSeries(series))
+        .and(ProductSpecification.hasSearchTerm(searchTerm))
         .and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
 
     Sort sort = null;

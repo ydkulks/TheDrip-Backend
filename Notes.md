@@ -28,11 +28,12 @@
     - [x] Link images on S3 to its associated product
     - [x] Get product details
     - [ ] Product reviews
-    - [ ] Searching by name
+    - [x] Searching by name
     - [x] Filter by categories, seller, series
     - [x] Sorting by name, price, stock
     - [x] Pagination
     - [ ] Product sold
+    - [ ] Delete product
 - [ ] Cart
 - [ ] Order
 - [ ] Feedback form
@@ -246,14 +247,28 @@ Open the app and create server and database before moving on with the next step.
     - **Get all products**: Retrieve a list of all products with their details (e.g., pagination, sorting).
 
         ```sh
-        curl --location 'http://localhost:8080/api/test?userId=2&seriesId=1&minPrice=10&maxPrice=100&sortDirection=asc&sortBy=productPrice&page=0&size=10'
+        curl --location 'http://localhost:8080/api/test?page=0&size=10'
         ```
 
-    - **Search product**: Search for products based on keywords, categories, brands, etc.
-    - **`GET /products/tags`**: Retrieve a list of products tagged with specific keywords or tags.
+    - **Search products**: Search for products based on title and description.
+
+        ```sh
+        curl --location 'http://localhost:8080/api/test?searchTerm=sweatpants&page=0&size=10'
+        ```
+
     - **`GET /products/reviews`**: Retrieve a list of product reviews and ratings.
-    - **`GET /products?filter=[key]=value`**: Apply filters to products (e.g., price range, brand).
-    - **`GET /products?sort=[field]&order=[asc/desc]`**: Sort products based on a specific field in ascending or descending order.
+    - **Filter products**: Apply filters to products (e.g., price range, brand).
+
+        ```sh
+        curl --location 'http://localhost:8080/api/test?userId=2&seriesId=1&minPrice=10&maxPrice=100&page=0&size=10'
+        ```
+
+    - **Sort products**: Sort products based on a specific field in ascending or descending order.
+
+        ```sh
+        curl --location 'http://localhost:8080/api/test?sortDirection=asc&sortBy=productPrice&page=0&size=10'
+        ```
+
     - **Delete product**: Delete a product from the database.
 
 ## 🧪 TDD
