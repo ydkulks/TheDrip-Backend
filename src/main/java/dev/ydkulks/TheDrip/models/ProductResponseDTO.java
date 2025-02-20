@@ -4,9 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-// import dev.ydkulks.TheDrip.models.ProductColorsModel;
-// import dev.ydkulks.TheDrip.models.ProductModel;
-// import dev.ydkulks.TheDrip.models.ProductSizesModel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,9 +23,6 @@ public class ProductResponseDTO {
     private List<String> colors;
     private List<String> images; // Presigned URLs
 
-    // Constructor to map from ProductProjection
-    // Optional<ProductCreationModel>
-    // public ProductResponseDTO(ProductProjectionDTO projection, List<String> images) {
     public ProductResponseDTO(Optional<ProductModel> product, List<String> images) {
         this.productId = product.get().getProductId();
         this.productName = product.get().getProductName();

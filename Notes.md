@@ -15,7 +15,7 @@
     - [ ] Delete user data
     - [ ] User reviews
         - [x] Create
-        - [ ] Get
+        - [x] Get
         - [x] Update
         - [ ] Delete
     - [ ] Cart
@@ -283,9 +283,10 @@ Open the app and create server and database before moving on with the next step.
         curl --location 'http://localhost:8080/seller/product?productId=4'
         ```
 
-    - **Reviews**: Create or update the review for a product
+    - **Reviews**: Leave a review for a product
 
         ```sh
+        # Create or update the review
         curl --location 'http://localhost:8080/customer/review' \
         --header 'Content-Type: application/json' \
         --header 'Authorization: Bearer {TOKEN}' \
@@ -296,6 +297,9 @@ Open the app and create server and database before moving on with the next step.
             "review_text":"This is a test review for this cargo sweatpants.",
             "rating": 4
         }'
+        # Get paginated reviews with filters and sort
+        curl --location 'http://localhost:8080/customer/review?userId=2&productId=7&sortBy=user&sortDirection=asc&page=0&size=10' \
+        --header 'Authorization: Bearer {TOKEN}'
         ```
 
 ## 🧪 TDD
