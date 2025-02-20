@@ -1,5 +1,7 @@
 package dev.ydkulks.TheDrip.services;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,7 @@ public class UserReviewsService {
   @Autowired private ProductRepository productRepository;
 
   @Transactional
-  public UserReviewsModel createReview(
+  public UserReviewsModel createOrUpdateReview(
       Integer user,
       Integer product,
       String reviewTitle,
@@ -31,7 +33,18 @@ public class UserReviewsService {
     ProductModel productObj = productRepository
       .findById(product)
       .orElseThrow(() -> new IllegalArgumentException("Invalid product ID: " + product));
-    UserReviewsModel review = new UserReviewsModel();
+
+    Optional<UserReviewsModel> reviewStatus = userReviewsRepository.findByUser_IdAndProduct_ProductId(user, product);
+
+    UserReviewsModel review;
+    if (reviewStatus.isEmpty()) {
+      // If review does not exists, create a new one
+      review = new UserReviewsModel();
+    } else {
+      // Update if review exists
+      review = reviewStatus.get();
+    }
+
     review.setUser(userObj);
     review.setProduct(productObj);
     review.setReviewTitle(reviewTitle);

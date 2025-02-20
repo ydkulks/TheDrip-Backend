@@ -19,7 +19,7 @@ public class CustomerController {
   @PostMapping("/review")
   public ResponseEntity<?> test(@RequestBody UserReviewsDTO data) {
     try {
-      UserReviewsModel response = userReviewsService.createReview(
+      UserReviewsModel response = userReviewsService.createOrUpdateReview(
           data.getUser(),
           data.getProduct(),
           data.getReview_title(),

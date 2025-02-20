@@ -16,7 +16,7 @@
     - [ ] User reviews
         - [x] Create
         - [ ] Get
-        - [ ] Update
+        - [x] Update
         - [ ] Delete
     - [ ] Cart
         - [ ] Create
@@ -280,10 +280,10 @@ Open the app and create server and database before moving on with the next step.
     - **Delete product**: Delete a product from the database.
 
         ```sh
-        curl --location 'http://localhost:8080/seller/product?productId=4
+        curl --location 'http://localhost:8080/seller/product?productId=4'
         ```
 
-    - **Reviews**: Retrieve a list of product reviews and ratings.
+    - **Reviews**: Create or update the review for a product
 
         ```sh
         curl --location 'http://localhost:8080/customer/review' \
