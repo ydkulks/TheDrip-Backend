@@ -14,7 +14,15 @@
     - [ ] Password reset
     - [ ] Delete user data
     - [ ] User reviews
+        - [x] Create
+        - [ ] Get
+        - [ ] Update
+        - [ ] Delete
     - [ ] Cart
+        - [ ] Create
+        - [ ] Get
+        - [ ] Update
+        - [ ] Delete
     - [ ] Order
 - [x] Products
     - [x] Upload images
@@ -257,7 +265,6 @@ Open the app and create server and database before moving on with the next step.
         curl --location 'http://localhost:8080/api/products?searchTerm=sweatpants&page=0&size=10'
         ```
 
-    - **`GET /products/reviews`**: Retrieve a list of product reviews and ratings.
     - **Filter products**: Apply filters to products (e.g., price range, brand).
 
         ```sh
@@ -274,6 +281,21 @@ Open the app and create server and database before moving on with the next step.
 
         ```sh
         curl --location 'http://localhost:8080/seller/product?productId=4
+        ```
+
+    - **Reviews**: Retrieve a list of product reviews and ratings.
+
+        ```sh
+        curl --location 'http://localhost:8080/customer/review' \
+        --header 'Content-Type: application/json' \
+        --header 'Authorization: Bearer {TOKEN}' \
+        --data '{
+            "user":3,
+            "product":7,
+            "review_title":"test review title",
+            "review_text":"This is a test review for this cargo sweatpants.",
+            "rating": 4
+        }'
         ```
 
 ## 🧪 TDD
