@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.services.LoginService;
-import dev.ydkulks.TheDrip.services.SignupService;
+import dev.ydkulks.TheDrip.services.UserService;
 
 @RestController
 @RequestMapping("/api")
 public class UserController {
 
   @Autowired
-  private SignupService service;
+  private UserService service;
 
   // NOTE: Unauthenticated endpoints
   @PostMapping("/signup")

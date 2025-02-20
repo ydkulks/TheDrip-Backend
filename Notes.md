@@ -8,12 +8,12 @@
 - [x] Authorization
 - [x] Role based auth for API endpoints
 - [ ] User profile
-    - [ ] Verify if user exists before user creation
+    - [x] Verify if user exists before user creation
     - [ ] Get user data
     - [ ] Update user data
     - [ ] Password reset
     - [ ] Delete user data
-    - [ ] Product reviews
+    - [ ] User reviews
     - [ ] Cart
     - [ ] Order
 - [x] Products
