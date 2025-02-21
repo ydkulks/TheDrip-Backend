@@ -13,11 +13,11 @@
     - [ ] Update user data
     - [ ] Password reset
     - [ ] Delete user data
-    - [ ] User reviews
+    - [x] User reviews
         - [x] Create
         - [x] Get
         - [x] Update
-        - [ ] Delete
+        - [x] Delete
     - [ ] Cart
         - [ ] Create
         - [ ] Get
@@ -298,8 +298,7 @@ Open the app and create server and database before moving on with the next step.
             "rating": 4
         }'
         # Get paginated reviews with filters and sort
-        curl --location 'http://localhost:8080/customer/review?userId=2&productId=7&sortBy=user&sortDirection=asc&page=0&size=10' \
-        --header 'Authorization: Bearer {TOKEN}'
+        curl --location 'http://localhost:8080/api/reviews?userId=2&productId=7&sortBy=user&sortDirection=asc&page=0&size=10'
         ```
 
 ## 🧪 TDD

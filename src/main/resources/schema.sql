@@ -96,15 +96,15 @@ CREATE TABLE IF NOT EXISTS product_product_images (
 
 CREATE TABLE user_reviews (
 	review_id SERIAL PRIMARY KEY,
-	user_id INTEGER NOT NULL,  -- Foreign key referencing users
-	product_id INTEGER NOT NULL, -- Foreign key referencing products
+	user_id INTEGER,
+	product_id INTEGER NOT NULL,
 	review_title TEXT,
 	review_text TEXT,
 	rating INTEGER CHECK (rating >= 1 AND rating <= 5),
 	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	
-	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
 	FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE ON UPDATE CASCADE,
 	-- Enforce that a user can only review a product once
 	UNIQUE (user_id, product_id)

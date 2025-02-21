@@ -12,13 +12,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
+import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductResponseDTO;
 import dev.ydkulks.TheDrip.models.ProductSeriesModel;
 import dev.ydkulks.TheDrip.models.UserModel;
+import dev.ydkulks.TheDrip.models.UserReviewsModel;
 import dev.ydkulks.TheDrip.repos.ProductCategoriesRepository;
+import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductSeriesRepository;
 import dev.ydkulks.TheDrip.repos.UserRepo;
 import dev.ydkulks.TheDrip.services.ProductService;
+import dev.ydkulks.TheDrip.services.UserReviewsService;
 
 @RestController
 @RequestMapping("/api")
@@ -28,27 +32,8 @@ public class ProductController {
   @Autowired private ProductCategoriesRepository productCategoriesRepository;
   @Autowired private UserRepo userRepo;
   @Autowired private ProductSeriesRepository productSeriesRepository;
-
-  // NOTE: test controller
-  @PostMapping("/test")
-  public ResponseEntity<String> test(@RequestBody ProductCreationDTO data) {
-    try {
-      ProductModel product = productService.createOrUpdateProduct(
-        data.getProductName(),
-        data.getCategoryId(),
-        data.getUserId(),
-        data.getSeriesId(),
-        data.getProductPrice(),
-        data.getProductDescription(),
-        data.getProductStock(),
-        data.getProductSizes(),
-        data.getProductColors()
-      );
-      return new ResponseEntity<>(product.getProductName(), HttpStatus.CREATED);
-    } catch (IllegalArgumentException e) {
-      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST); // Or handle the error more specifically
-    }
-  }
+  @Autowired private UserReviewsService userReviewsService;
+  @Autowired private ProductRepository productRepository;
 
   // NOTE: Get product by ID
   @GetMapping("/product")
@@ -100,6 +85,30 @@ public class ProductController {
       e.printStackTrace();
       return new ResponseEntity<>(
           "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GetMapping("/reviews")
+  public ResponseEntity<?> getReviews(
+      @RequestParam(required = false) Integer userId,
+      @RequestParam(required = false) Integer productId,
+      @RequestParam(required = false) String sortBy,
+      @RequestParam(required = false) String sortDirection,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+    try {
+      Pageable pageable = PageRequest.of(page, size);
+
+      UserModel user = (userId != null) ? userRepo.findById(userId).orElse(null) : null;
+      ProductModel product = (productId != null) ? productRepository.findById(productId).orElse(null) : null;
+
+      Page<UserReviewsModel> response = userReviewsService.getReview(user, product, sortBy, sortDirection, pageable);
+      return new ResponseEntity<Page<UserReviewsModel>>(response, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
