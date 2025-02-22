@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS product_product_images (
 	img_id INTEGER NOT NULL REFERENCES product_images(img_id) ON DELETE CASCADE
 );
 
-CREATE TABLE user_reviews (
+CREATE TABLE IF NOT EXISTS user_reviews (
 	review_id SERIAL PRIMARY KEY,
 	user_id INTEGER,
 	product_id INTEGER NOT NULL,
@@ -108,6 +108,23 @@ CREATE TABLE user_reviews (
 	FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE ON UPDATE CASCADE,
 	-- Enforce that a user can only review a product once
 	UNIQUE (user_id, product_id)
+);
+
+CREATE TABLE IF NOT EXISTS cart (
+	cart_id SERIAL PRIMARY KEY,
+	user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+	cart_items_id SERIAL PRIMARY KEY,
+	cart_id INT NOT NULL REFERENCES cart(cart_id) ON DELETE CASCADE,
+	product_id INT NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
+	quantity INT NOT NULL CHECK (quantity > 0),
+	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	UNIQUE (cart_id, product_id)
 );
 
 /*

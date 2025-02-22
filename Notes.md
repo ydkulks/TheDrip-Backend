@@ -19,9 +19,9 @@
         - [x] Update
         - [x] Delete
     - [ ] Cart
-        - [ ] Create
+        - [x] Create
         - [ ] Get
-        - [ ] Update
+        - [x] Update
         - [ ] Delete
     - [ ] Order
 - [x] Products

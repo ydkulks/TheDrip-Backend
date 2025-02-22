@@ -1,10 +1,14 @@
 package dev.ydkulks.TheDrip.controllers.customer;
 
+import java.lang.System.Logger;
+
+// import org.checkerframework.checker.index.qual.Positive;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,13 +18,18 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.ydkulks.TheDrip.models.UserReviewsDTO;
 import dev.ydkulks.TheDrip.models.UserReviewsModel;
 import dev.ydkulks.TheDrip.repos.UserReviewsRepository;
+import dev.ydkulks.TheDrip.services.CartService;
 import dev.ydkulks.TheDrip.services.UserReviewsService;
 
 @RestController
 @RequestMapping("/customer")
 public class CustomerController {
-  @Autowired private UserReviewsService userReviewsService;
-  @Autowired private UserReviewsRepository userReviewsRepository;
+  @Autowired
+  private UserReviewsService userReviewsService;
+  @Autowired
+  private UserReviewsRepository userReviewsRepository;
+  @Autowired
+  private CartService cartService;
 
   @PostMapping("/review")
   public ResponseEntity<?> createOrUpdate(@RequestBody UserReviewsDTO data) {
@@ -55,7 +64,7 @@ public class CustomerController {
   public ResponseEntity<String> delete(@RequestParam Integer reviewId) {
     try {
       UserReviewsModel response = userReviewsRepository.findById(reviewId).orElse(null);
-      if(response != null) {
+      if (response != null) {
         userReviewsRepository.deleteById(reviewId);
         return new ResponseEntity<String>(response.getReviewTitle() + " got deleted!", HttpStatus.OK);
       }
@@ -66,6 +75,23 @@ public class CustomerController {
           "Invalid arguments provided.", HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
       e.printStackTrace();
+      return new ResponseEntity<>(
+          "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @PostMapping("/items") // More specific endpoint for adding items
+  public ResponseEntity<?> addToCart(
+      @RequestParam Integer userId,
+      @RequestParam Integer productId,
+      @RequestParam Integer quantity) {
+    try {
+      cartService.addToOrUpdateCart(userId, productId, quantity);
+      // Return a more informative response
+      return new ResponseEntity<>("Item added to cart successfully!", HttpStatus.CREATED);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>("Invalid arguments provided: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
       return new ResponseEntity<>(
           "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
