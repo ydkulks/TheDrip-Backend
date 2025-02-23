@@ -122,11 +122,11 @@ CREATE TABLE IF NOT EXISTS cart_items (
 	cart_id INT NOT NULL REFERENCES cart(cart_id) ON DELETE CASCADE,
 	product_id INT NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
 	quantity INT NOT NULL CHECK (quantity > 0),
-  color TEXT DEFAULT 'original',
-  size TEXT DEFAULT 'medium',
+	color TEXT DEFAULT 'original',
+	size TEXT DEFAULT 'medium',
 	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	UNIQUE (cart_id, product_id)
+	UNIQUE (cart_id, product_id, color, size)
 );
 
 /*

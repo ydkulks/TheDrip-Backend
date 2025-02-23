@@ -23,6 +23,7 @@
         - [x] Get
         - [x] Update
         - [ ] Delete
+        - [x] Different cart entry for product variants
     - [ ] Order
 - [x] Products
     - [x] Upload images
@@ -305,7 +306,7 @@ Open the app and create server and database before moving on with the next step.
 
         ```sh
         # Add to cart or Update the cart
-        curl --location --request POST 'http://localhost:8080/customer/items?userId=2&productId=7&quantity=1' \
+        curl --location --request POST 'http://localhost:8080/customer/items?userId=2&productId=5&color=1&size=1&quantity=1' \
         --header 'Authorization: Bearer {TOKEN}'
         # Get cart items
         curl --location 'http://localhost:8080/customer/items?userId=2&productName=cargo&colorId=1&sizeId=2&sortBy=cartItemsId&sortDirection=desc&page=0&size=10' \

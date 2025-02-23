@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import dev.ydkulks.TheDrip.models.CartItemsModel;
+import dev.ydkulks.TheDrip.models.CartItemsSpecification;
 import dev.ydkulks.TheDrip.models.CartModel;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
@@ -53,7 +54,7 @@ public class CartService {
 
     // Find existing cart item for the product in the cart
     CartItemsModel cartItem = cartItemsRepository
-      .findByCartAndProduct(cart, product);
+      .findByCartAndProductAndSizeAndColor(cart, product, size, color);
     if (cartItem == null) {
       // If the item doesn't exist, create a new one
       cartItem = new CartItemsModel();
@@ -62,11 +63,11 @@ public class CartService {
       cartItem.setQuantity(quantity);
       cartItem.setColor(color);
       cartItem.setSize(size);
-      cartItemsRepository.save(cartItem);
     } else {
       // If the item exists, update the quantity
       cartItem.setQuantity(cartItem.getQuantity() + quantity);
     }
+    cartItemsRepository.save(cartItem);
   }
 
   @Transactional
@@ -85,12 +86,19 @@ public class CartService {
 
     UserModel user = userRepo.findById(userId)
       .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    ProductModel product = productRepository.findOne(spec)
-      .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-    ProductSizesModel size = productSizesRepository.findById(sizeId)
-      .orElseThrow(() -> new IllegalArgumentException("Size not found"));
-    ProductColorsModel color = productColorsRepository.findById(colorId)
-      .orElseThrow(() -> new IllegalArgumentException("Color not found"));
+    // Handle null value to moke it optional
+    ProductModel product = productName != null
+      ? productRepository.findOne(spec)
+      .orElseThrow(() -> new IllegalArgumentException("Product not found"))
+      : null;
+    ProductSizesModel size = sizeId != null
+      ? productSizesRepository.findById(sizeId)
+      .orElseThrow(() -> new IllegalArgumentException("Size not found"))
+      : null;
+    ProductColorsModel color = colorId != null
+      ? productColorsRepository.findById(colorId)
+      .orElseThrow(() -> new IllegalArgumentException("Color not found"))
+      : null;
     CartModel cart = cartRepository.findByUser(user);
 
     if (cart == null) {
@@ -113,9 +121,24 @@ public class CartService {
         PageRequest.of(
             pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
-    // Page<CartItemsModel> cartItems = cartItemsRepository.findByCart(cart, sortedPageable);
-    Page<CartItemsModel> cartItems = cartItemsRepository
-      .findByCartAndProductAndSizeAndColor(cart, product, size.getSize_name(), color.getColor_name(), sortedPageable);
-    return new PageImpl<>(cartItems.toList(), sortedPageable, cartItems.getTotalElements());
+
+    // Build the specification
+    Specification<CartItemsModel> cartspec = Specification
+      .where((root, query, criteriaBuilder) ->
+          criteriaBuilder.equal(root.get("cart"), cart));
+
+    // Add optional criteria
+    if (product != null) {
+      cartspec = cartspec.and(CartItemsSpecification.hasProduct(product));
+    }
+    if (size != null && size != null) {
+      cartspec = cartspec.and(CartItemsSpecification.hasSize(size.getSize_name()));
+    }
+    if (color != null && color != null) {
+      cartspec = cartspec.and(CartItemsSpecification.hasColor(color.getColor_name()));
+    }
+
+    // Retrieve cart items using the specification
+    return cartItemsRepository.findAll(cartspec, sortedPageable);
   }
 }

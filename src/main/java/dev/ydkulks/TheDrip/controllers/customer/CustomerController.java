@@ -26,9 +26,13 @@ import dev.ydkulks.TheDrip.models.CartMapper;
 import dev.ydkulks.TheDrip.models.CartPageDTO;
 import dev.ydkulks.TheDrip.models.CartProductDTO;
 import dev.ydkulks.TheDrip.models.CartResponseDTO;
+import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
+import dev.ydkulks.TheDrip.models.ProductSizesModel;
 import dev.ydkulks.TheDrip.models.UserReviewsDTO;
 import dev.ydkulks.TheDrip.models.UserReviewsModel;
+import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
+import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
 import dev.ydkulks.TheDrip.repos.UserRepo;
 import dev.ydkulks.TheDrip.repos.UserReviewsRepository;
 import dev.ydkulks.TheDrip.services.CartService;
@@ -43,6 +47,8 @@ public class CustomerController {
   @Autowired private CartService cartService;
   @Autowired private CartMapper cartMapper;
   @Autowired private ProductImageService productImageService;
+  @Autowired private ProductColorsRepository productColorsRepository;
+  @Autowired private ProductSizesRepository productSizesRepository;
 
   @PostMapping("/review")
   public ResponseEntity<?> createOrUpdate(@RequestBody UserReviewsDTO data) {
@@ -98,11 +104,20 @@ public class CustomerController {
       @RequestParam Integer userId,
       @RequestParam Integer productId,
       @RequestParam Integer quantity,
-      @RequestParam String color,
-      @RequestParam String size) {
+      @RequestParam Integer color,
+      @RequestParam Integer size) {
     try {
-      cartService.addToOrUpdateCart(userId, productId, quantity, color, size);
-      // Return a more informative response
+
+      ProductColorsModel colorRecord = productColorsRepository.findById(color)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid Color ID: " + color));
+      String colorName = colorRecord.getColor_name();
+
+      ProductSizesModel sizeRecord = productSizesRepository.findById(size)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid Color ID: " + size));
+      String sizeName = sizeRecord.getSize_name();
+
+      cartService.addToOrUpdateCart(userId, productId, quantity, colorName, sizeName);
+
       return new ResponseEntity<>("Item added to cart successfully!", HttpStatus.CREATED);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>("Invalid arguments provided: " + e.getMessage(), HttpStatus.BAD_REQUEST);
