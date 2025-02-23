@@ -20,7 +20,7 @@
         - [x] Delete
     - [ ] Cart
         - [x] Create
-        - [ ] Get
+        - [x] Get
         - [x] Update
         - [ ] Delete
     - [ ] Order
@@ -299,6 +299,17 @@ Open the app and create server and database before moving on with the next step.
         }'
         # Get paginated reviews with filters and sort
         curl --location 'http://localhost:8080/api/reviews?userId=2&productId=7&sortBy=user&sortDirection=asc&page=0&size=10'
+        ```
+
+    - **Cart**: Manage products that you are interested to buy in cart.
+
+        ```sh
+        # Add to cart or Update the cart
+        curl --location --request POST 'http://localhost:8080/customer/items?userId=2&productId=7&quantity=1' \
+        --header 'Authorization: Bearer {TOKEN}'
+        # Get cart items
+        curl --location 'http://localhost:8080/customer/items?userId=2&productName=cargo&colorId=1&sizeId=2&sortBy=cartItemsId&sortDirection=desc&page=0&size=10' \
+        --header 'Authorization: Bearer {TOKEN}'
         ```
 
 ## 🧪 TDD

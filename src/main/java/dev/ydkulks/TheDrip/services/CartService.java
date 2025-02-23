@@ -1,15 +1,28 @@
 package dev.ydkulks.TheDrip.services;
 
+import java.util.Collections;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import dev.ydkulks.TheDrip.models.CartItemsModel;
 import dev.ydkulks.TheDrip.models.CartModel;
+import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
+import dev.ydkulks.TheDrip.models.ProductSizesModel;
+import dev.ydkulks.TheDrip.models.ProductSpecification;
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.repos.CartItemsRepository;
 import dev.ydkulks.TheDrip.repos.CartRepository;
+import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
+import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
 import dev.ydkulks.TheDrip.repos.UserRepo;
 import jakarta.transaction.Transactional;
 
@@ -19,13 +32,15 @@ public class CartService {
   @Autowired private CartItemsRepository cartItemsRepository;
   @Autowired private UserRepo userRepo;
   @Autowired private ProductRepository productRepository;
+  @Autowired private ProductSizesRepository productSizesRepository;
+  @Autowired private ProductColorsRepository productColorsRepository;
 
   @Transactional
-  public void addToOrUpdateCart(Integer userId, Integer productId, Integer quantity) {
+  public void addToOrUpdateCart(Integer userId, Integer productId, Integer quantity, String color, String size) {
     UserModel user = userRepo.findById(userId)
       .orElseThrow(() -> new IllegalArgumentException("User not found"));
     ProductModel product = productRepository
-      .findById(productId).orElseThrow(() -> 
+      .findById(productId).orElseThrow(() ->
           new IllegalArgumentException("Product not found"));
 
     // Find existing cart for the user
@@ -45,10 +60,62 @@ public class CartService {
       cartItem.setCart(cart);
       cartItem.setProduct(product);
       cartItem.setQuantity(quantity);
+      cartItem.setColor(color);
+      cartItem.setSize(size);
       cartItemsRepository.save(cartItem);
     } else {
       // If the item exists, update the quantity
       cartItem.setQuantity(cartItem.getQuantity() + quantity);
     }
+  }
+
+  @Transactional
+  public Page<CartItemsModel> getItems(
+      Integer userId,
+      String productName,
+      Integer sizeId,
+      Integer colorId,
+      String sortBy,
+      String sortDirection,
+      Pageable pageable
+      ){
+
+    Specification<ProductModel> spec =
+        Specification.where(ProductSpecification.hasSearchTerm(productName));
+
+    UserModel user = userRepo.findById(userId)
+      .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    ProductModel product = productRepository.findOne(spec)
+      .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+    ProductSizesModel size = productSizesRepository.findById(sizeId)
+      .orElseThrow(() -> new IllegalArgumentException("Size not found"));
+    ProductColorsModel color = productColorsRepository.findById(colorId)
+      .orElseThrow(() -> new IllegalArgumentException("Color not found"));
+    CartModel cart = cartRepository.findByUser(user);
+
+    if (cart == null) {
+      return new PageImpl<>(Collections.emptyList(), pageable, 0);
+    }
+
+    Sort sort = null;
+    if (sortBy != null && !sortBy.isEmpty()) {
+      Sort.Direction direction =
+        sortDirection != null && sortDirection.equalsIgnoreCase("desc")
+        ? Sort.Direction.DESC
+        : Sort.Direction.ASC;
+      sort = Sort.by(direction, sortBy);
+    }
+
+    // Create a new Pageable object with the Sort information
+    Pageable sortedPageable = pageable;
+    if (sort != null) {
+      sortedPageable =
+        PageRequest.of(
+            pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
+    // Page<CartItemsModel> cartItems = cartItemsRepository.findByCart(cart, sortedPageable);
+    Page<CartItemsModel> cartItems = cartItemsRepository
+      .findByCartAndProductAndSizeAndColor(cart, product, size.getSize_name(), color.getColor_name(), sortedPageable);
+    return new PageImpl<>(cartItems.toList(), sortedPageable, cartItems.getTotalElements());
   }
 }
