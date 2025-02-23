@@ -141,4 +141,9 @@ public class CartService {
     // Retrieve cart items using the specification
     return cartItemsRepository.findAll(cartspec, sortedPageable);
   }
+
+  @Transactional
+  public void removeFromCart(Integer cartItemId) {
+    cartItemsRepository.deleteById(cartItemId);
+  }
 }

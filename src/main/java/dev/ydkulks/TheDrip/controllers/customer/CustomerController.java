@@ -190,4 +190,17 @@ public class CustomerController {
       return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @DeleteMapping("/item")
+  public ResponseEntity<?> removeFromCart(@RequestParam Integer cartItemId) {
+    try{
+      cartService.removeFromCart(cartItemId);
+      return new ResponseEntity<>("Removed cart item of ID: " + cartItemId, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

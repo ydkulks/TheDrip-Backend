@@ -22,7 +22,7 @@
         - [x] Create
         - [x] Get
         - [x] Update
-        - [ ] Delete
+        - [x] Delete
         - [x] Different cart entry for product variants
     - [ ] Order
 - [x] Products
@@ -310,6 +310,9 @@ Open the app and create server and database before moving on with the next step.
         --header 'Authorization: Bearer {TOKEN}'
         # Get cart items
         curl --location 'http://localhost:8080/customer/items?userId=2&productName=cargo&colorId=1&sizeId=2&sortBy=cartItemsId&sortDirection=desc&page=0&size=10' \
+        --header 'Authorization: Bearer {TOKEN}'
+        # Delete by ID
+        curl --location --request DELETE 'http://localhost:8080/customer/item?cartItemId=2' \
         --header 'Authorization: Bearer {TOKEN}'
         ```
 
