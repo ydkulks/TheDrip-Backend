@@ -18,7 +18,7 @@
         - [x] Get
         - [x] Update
         - [x] Delete
-    - [ ] Cart
+    - [x] Cart
         - [x] Create
         - [x] Get
         - [x] Update

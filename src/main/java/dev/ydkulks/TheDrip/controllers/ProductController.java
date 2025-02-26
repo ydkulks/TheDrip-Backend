@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.ydkulks.TheDrip.models.CategorySeriesSizesColorsDTO;
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductResponseDTO;
@@ -104,6 +105,19 @@ public class ProductController {
 
       Page<UserReviewsModel> response = userReviewsService.getReview(user, product, sortBy, sortDirection, pageable);
       return new ResponseEntity<Page<UserReviewsModel>>(response, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GetMapping("/productspecifications")
+  public ResponseEntity<?> getProdSpecs() {
+    try {
+      CategorySeriesSizesColorsDTO response = productService.getCategorySeriesSizesColors();
+      return new ResponseEntity<CategorySeriesSizesColorsDTO>(response, HttpStatus.OK);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
     } catch (Exception e) {

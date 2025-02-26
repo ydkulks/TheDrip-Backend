@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import dev.ydkulks.TheDrip.models.CategorySeriesSizesColorsDTO;
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
@@ -253,6 +254,22 @@ public class ProductService {
     return new PageImpl<>(productResponseDTOList, sortedPageable, productModelPage.getTotalElements());
   }
 
+  @Transactional
+  public CategorySeriesSizesColorsDTO getCategorySeriesSizesColors() {
+    List<ProductCategoriesModel> categores = productCategoriesRepository.findAll();
+    List<ProductSeriesModel> series = productSeriesRepository.findAll();
+    List<ProductSizesModel> sizes= productSizesRepository.findAll();
+    List<ProductColorsModel> colors= productColorsRepository.findAll();
+
+    CategorySeriesSizesColorsDTO dto = new CategorySeriesSizesColorsDTO();
+    dto.setCategories(categores);
+    dto.setSeries(series);
+    dto.setSizes(sizes);
+    dto.setColors(colors);
+    return dto;
+  }
+
+  // NOTE: Delete
   @Transactional
   public Optional<ProductModel> deleteProduct(Integer productId) {
     ProductModel product = productRepository.findById(productId).orElseThrow(() ->
