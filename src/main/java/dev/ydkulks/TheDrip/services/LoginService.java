@@ -30,7 +30,8 @@ public class LoginService {
     if (auth.isAuthenticated()) return jwtService.generateToken(
         userData.getEmail(),
         user.getUsername(),
-        userData.getRole()
+        userData.getRole(),
+        userData.getId()
       );
     return "Fail";
   }
