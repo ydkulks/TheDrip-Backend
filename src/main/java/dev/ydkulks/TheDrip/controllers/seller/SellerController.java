@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dev.ydkulks.TheDrip.repos.ProductImageRepository;
 import dev.ydkulks.TheDrip.repos.ProductProductImageRepository;
+import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.services.ProductImageService;
 import dev.ydkulks.TheDrip.services.ProductService;
 import jakarta.transaction.Transactional;
@@ -38,6 +39,7 @@ public class SellerController {
   @Autowired private ProductImageService productImageService;
   @Autowired private ProductProductImageRepository productProductImageRepository;
   @Autowired private ProductService productService;
+  @Autowired private ProductRepository productRepository;
 
   // NOTE: Create/Update product details
   @PostMapping("/product")
@@ -73,28 +75,46 @@ public class SellerController {
 
   @PostMapping("/{username}/{productId}/image")
   @Transactional
-  public ResponseEntity<String> uploadImage(@PathVariable String username, @PathVariable String productId, @RequestParam("file") List<MultipartFile> files) throws IOException {
-    // Upload image to S3
-    List<CompletableFuture<PutObjectResponse>> responses = productImageService.uploadMultipleFilesAsync("thedrip", username, productId, files);
-    CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+  public ResponseEntity<?> uploadImage(
+      @PathVariable String username,
+      @PathVariable String productId,
+      @RequestParam("file") List<MultipartFile> files
+      ) throws IOException {
+    try{
+      // Does the product exists?
+      boolean product = productRepository.existsById(Integer.parseInt(productId));
+      if (product) {
+        // Upload image to S3
+        List<CompletableFuture<PutObjectResponse>> responses = productImageService
+          .uploadMultipleFilesAsync("thedrip", username, productId, files);
+        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+      }
 
-    // Store in product_images and product_product_images
-    files.forEach(file -> {
-      ProductImageModel image = new ProductImageModel();
-      image.setImg_name(file.getOriginalFilename());
-      image.setImg_type(file.getContentType());
-      image.setImgPath(String.format("%s/%s/%s", username, productId, file.getOriginalFilename()));
-      ProductImageModel savedImage = productImageRepository.save(image);
+      // Store in product_images and product_product_images
+      files.forEach(file -> {
+        String imgPath = String.format("%s/%s/%s", username, productId, file.getOriginalFilename());
+        // Check if image exists for that product
+        ProductImageModel img = productImageRepository.findByImgPath(imgPath);
+        if (img != null) {
+          ProductImageModel image = new ProductImageModel();
+          image.setImg_name(file.getOriginalFilename());
+          image.setImg_type(file.getContentType());
+          image.setImgPath(String.format("%s/%s/%s", username, productId, file.getOriginalFilename()));
+          ProductImageModel savedImage = productImageRepository.save(image);
 
-      int imgId = savedImage.getImg_id();
+          int imgId = savedImage.getImg_id();
 
-      ProductProductImageModel productImageLink = new ProductProductImageModel();
-      productImageLink.setProduct_id(Integer.parseInt(productId));
-      productImageLink.setImg_id(imgId);
-      productProductImageRepository.save(productImageLink);
-    });
+          ProductProductImageModel productImageLink = new ProductProductImageModel();
+          productImageLink.setProduct_id(Integer.parseInt(productId));
+          productImageLink.setImg_id(imgId);
+          productProductImageRepository.save(productImageLink);
+        }
+      });
+      return new ResponseEntity<>("All files uploaded", HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
 
-    return ResponseEntity.ok("All files uploaded");
   }
 
   // NOTE: Get presigned URL for 1 user ,1 of their product and 1 image

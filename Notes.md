@@ -25,6 +25,7 @@
         - [x] Delete
         - [x] Different cart entry for product variants
     - [ ] Order
+        - [ ] Stripe integration
 - [x] Products
     - [x] Upload images
         - [x] Base64
@@ -46,6 +47,7 @@
     - [x] Product sold
     - [x] Delete product
 - [ ] Feedback form
+- [ ] Jaspersoft report
 
 ## ⚠️ Pre-requizits:
 1. **Java**

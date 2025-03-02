@@ -11,4 +11,5 @@ import dev.ydkulks.TheDrip.models.ProductImageModel;
 @Repository
 public interface ProductImageRepository extends JpaRepository<ProductImageModel, Integer> {
   List<ProductImageModel> findByImgPathIn(List<String> imgPath);
+  ProductImageModel findByImgPath(String imgPath);
 }
