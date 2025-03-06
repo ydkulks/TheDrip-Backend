@@ -1,6 +1,7 @@
 package dev.ydkulks.TheDrip.repos;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,5 +12,5 @@ import dev.ydkulks.TheDrip.models.ProductImageModel;
 @Repository
 public interface ProductImageRepository extends JpaRepository<ProductImageModel, Integer> {
   List<ProductImageModel> findByImgPathIn(List<String> imgPath);
-  ProductImageModel findByImgPath(String imgPath);
+  Optional<ProductImageModel> findByImgPath(String imgPath);
 }

@@ -2,11 +2,13 @@ package dev.ydkulks.TheDrip.controllers.seller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,6 +31,7 @@ import dev.ydkulks.TheDrip.models.ProductCreationDTO;
 import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.models.ProductProductImageModel;
+import dev.ydkulks.TheDrip.models.ProductSeriesModel;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @RestController
@@ -94,9 +97,11 @@ public class SellerController {
       files.forEach(file -> {
         String imgPath = String.format("%s/%s/%s", username, productId, file.getOriginalFilename());
         // Check if image exists for that product
-        ProductImageModel img = productImageRepository.findByImgPath(imgPath);
-        if (img != null) {
-          ProductImageModel image = new ProductImageModel();
+        Optional<ProductImageModel> img = productImageRepository.findByImgPath(imgPath);
+        ProductImageModel image;
+        ProductProductImageModel productImageLink;
+        if (img.isEmpty()) {
+          image = new ProductImageModel();
           image.setImg_name(file.getOriginalFilename());
           image.setImg_type(file.getContentType());
           image.setImgPath(String.format("%s/%s/%s", username, productId, file.getOriginalFilename()));
@@ -104,10 +109,17 @@ public class SellerController {
 
           int imgId = savedImage.getImg_id();
 
-          ProductProductImageModel productImageLink = new ProductProductImageModel();
+          productImageLink = new ProductProductImageModel();
           productImageLink.setProduct_id(Integer.parseInt(productId));
           productImageLink.setImg_id(imgId);
           productProductImageRepository.save(productImageLink);
+        } else {
+          image = img.get();
+          // Update fields if needed, for example:
+          image.setImg_name(file.getOriginalFilename());
+          image.setImg_type(file.getContentType());
+
+          productImageRepository.save(image); // Save the updated image
         }
       });
       return new ResponseEntity<>("All files uploaded", HttpStatus.OK);
@@ -115,6 +127,17 @@ public class SellerController {
       return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
+  }
+
+  @PostMapping("/series")
+  @Transactional
+  public ResponseEntity<?> createOrUpdateSeries(@RequestParam String seriesName) {
+    try{
+      ProductSeriesModel series = productService.createOrUpdateSeries(seriesName);
+      return new ResponseEntity<>(series, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
   }
 
   // NOTE: Get presigned URL for 1 user ,1 of their product and 1 image

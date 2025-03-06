@@ -26,5 +26,6 @@ public class ProductSeriesModel {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer series_id;
 
-  private String series_name;
+  @Column(name = "series_name")
+  private String seriesName;
 }

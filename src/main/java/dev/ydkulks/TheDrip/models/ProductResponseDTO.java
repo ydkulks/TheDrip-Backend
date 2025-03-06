@@ -30,7 +30,7 @@ public class ProductResponseDTO {
         this.productPrice = product.get().getProductPrice();
         this.productStock = product.get().getProductStock();
         this.productSold = product.get().getProductSold();
-        this.seriesName = product.get().getSeries().getSeries_name();
+        this.seriesName = product.get().getSeries().getSeriesName();
         this.categoryName = product.get().getCategory().getCategoryName();
         this.sellerName = product.get().getUser().getUsername();
         this.sizes = product.get().getSizes()

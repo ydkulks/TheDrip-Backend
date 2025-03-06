@@ -23,7 +23,7 @@ public interface CartMapper {
   @Mapping(source = "productId", target = "productId")
   @Mapping(source = "productName", target = "productName")
   @Mapping(source = "category.categoryName", target = "category")
-  @Mapping(source = "series.series_name", target = "series")
+  @Mapping(source = "series.seriesName", target = "series")
   // @Mapping(source = "images", target = "image", qualifiedByName = "mapFirstImage")
   // @Mapping(source = "images", target = "images")
   CartProductDTO productModelToProductDTO(ProductModel productModel);

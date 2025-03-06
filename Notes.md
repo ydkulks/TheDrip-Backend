@@ -36,6 +36,8 @@
             - [x] Fetch presigned link only if existing link is expired
             - [x] Update images
             - [x] Delete images
+            - [ ] Limit images per product
+            - [ ] Add product rating
     - [x] Upload product details
     - [x] Update product details
     - [x] Link images on S3 to its associated product

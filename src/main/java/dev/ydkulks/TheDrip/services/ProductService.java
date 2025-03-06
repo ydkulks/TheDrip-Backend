@@ -129,8 +129,16 @@ public class ProductService {
   }
 
   @Transactional
-  public ProductSeriesModel createOrUpdateSeries(ProductSeriesModel newSeries) {
-    return productSeriesRepository.save(newSeries);
+  public ProductSeriesModel createOrUpdateSeries(String seriesName) {
+    Optional<ProductSeriesModel> existingSeries = productSeriesRepository .findBySeriesName(seriesName);
+    ProductSeriesModel series;
+    if (existingSeries.isPresent()) {
+      series = existingSeries.get();
+    } else {
+      series = new ProductSeriesModel();
+    }
+    series.setSeriesName(seriesName);
+    return productSeriesRepository.save(series);
   }
 
   @Transactional
