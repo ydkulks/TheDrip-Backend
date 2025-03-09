@@ -273,7 +273,7 @@ Open the app and create server and database before moving on with the next step.
     - **Filter products**: Apply filters to products (e.g., price range, brand).
 
         ```sh
-        curl --location 'http://localhost:8080/api/products?userId=2&seriesId=1&minPrice=10&maxPrice=100&page=0&size=10'
+        curl --location 'http://localhost:8080/api/products?userId=2&categoryIds=5,10&seriesIds=1,2&minPrice=10&maxPrice=100&page=0&size=10'
         ```
 
     - **Sort products**: Sort products based on a specific field in ascending or descending order.
@@ -286,6 +286,13 @@ Open the app and create server and database before moving on with the next step.
 
         ```sh
         curl --location 'http://localhost:8080/seller/product?productId=4'
+        ```
+
+    - **Create or Update Series**: Create new or update existing series
+
+        ```sh
+        curl --location --request POST 'http://localhost:8080/seller/series?seriesName=Dragon%20Ball%20Super%3A%20Super%20Hero' \
+        --header 'Authorization: Bearer {TOKEN}'
         ```
 
     - **Reviews**: Leave a review for a product

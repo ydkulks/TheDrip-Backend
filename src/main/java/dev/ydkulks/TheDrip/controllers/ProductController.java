@@ -1,5 +1,7 @@
 package dev.ydkulks.TheDrip.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,11 +50,12 @@ public class ProductController {
     }
   }
 
+  // TODO: Add stock, color and size filters (not just one ID, but handle an array of IDs)
   @GetMapping("/products")
   public ResponseEntity<?> allProducts(
-      @RequestParam(required = false) Integer categoryId,
+      @RequestParam(required = false) List<Integer> categoryIds, // Handle array
       @RequestParam(required = false) Integer userId,
-      @RequestParam(required = false) Integer seriesId,
+      @RequestParam(required = false) List<Integer> seriesIds, // Handle array
       @RequestParam(required = false) Double minPrice,
       @RequestParam(required = false) Double maxPrice,
       @RequestParam(required = false) String sortBy,
@@ -64,18 +67,20 @@ public class ProductController {
       Pageable pageable = PageRequest.of(page, size);
 
       // Fetch the entities based on the IDs
-      ProductCategoriesModel category =
-          (categoryId != null)
-              ? productCategoriesRepository.findById(categoryId).orElse(null)
-              : null;
+      List<ProductCategoriesModel> categories =
+        (categoryIds != null && !categoryIds.isEmpty())
+            ? productCategoriesRepository.findAllById(categoryIds)
+            : null;
       UserModel user = (userId != null) ? userRepo.findById(userId).orElse(null) : null;
-      ProductSeriesModel series =
-          (seriesId != null) ? productSeriesRepository.findById(seriesId).orElse(null) : null;
+      List<ProductSeriesModel> series =
+        (seriesIds != null && !seriesIds.isEmpty())
+            ? productSeriesRepository.findAllById(seriesIds)
+            : null;
 
       // Call the getProductByFilters service
       Page<ProductResponseDTO> products =
           productService.getProductsByFilters(
-              category, user, series, minPrice, maxPrice, sortBy, sortDirection, searchTerm, pageable);
+              categories, user, series, minPrice, maxPrice, sortBy, sortDirection, searchTerm, pageable);
 
       return new ResponseEntity<Page<ProductResponseDTO>>(products, HttpStatus.OK);
 

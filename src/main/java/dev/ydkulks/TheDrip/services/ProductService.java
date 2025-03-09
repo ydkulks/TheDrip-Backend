@@ -202,9 +202,9 @@ public class ProductService {
 
   @Transactional
   public Page<ProductResponseDTO> getProductsByFilters(
-      ProductCategoriesModel category,
+      List<ProductCategoriesModel> categories,
       UserModel user,
-      ProductSeriesModel series,
+      List<ProductSeriesModel> series,
       Double minPrice,
       Double maxPrice,
       String sortBy,
@@ -213,9 +213,9 @@ public class ProductService {
       Pageable pageable) {
 
     Specification<ProductModel> spec =
-        Specification.where(ProductSpecification.hasCategory(category))
+        Specification.where(ProductSpecification.hasCategoryIn(categories))
         .and(ProductSpecification.hasUser(user))
-        .and(ProductSpecification.hasSeries(series))
+        .and(ProductSpecification.hasSeriesIn(series))
         .and(ProductSpecification.hasSearchTerm(searchTerm))
         .and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
 
