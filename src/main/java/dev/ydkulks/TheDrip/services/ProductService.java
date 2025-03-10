@@ -202,6 +202,9 @@ public class ProductService {
 
   @Transactional
   public Page<ProductResponseDTO> getProductsByFilters(
+      List<ProductColorsModel> colors,
+      List<ProductSizesModel> sizes,
+      Boolean inStock,
       List<ProductCategoriesModel> categories,
       UserModel user,
       List<ProductSeriesModel> series,
@@ -213,7 +216,10 @@ public class ProductService {
       Pageable pageable) {
 
     Specification<ProductModel> spec =
-        Specification.where(ProductSpecification.hasCategoryIn(categories))
+        Specification.where(ProductSpecification.hasColorsIn(colors))
+        .and(ProductSpecification.hasSizesIn(sizes))
+        .and(ProductSpecification.hasProductStock(inStock))
+        .and(ProductSpecification.hasCategoryIn(categories))
         .and(ProductSpecification.hasUser(user))
         .and(ProductSpecification.hasSeriesIn(series))
         .and(ProductSpecification.hasSearchTerm(searchTerm))
@@ -288,11 +294,12 @@ public class ProductService {
         product.getUser().getUsername(),
         product.getProductId()
       ).join();
-    if(urls != null && !urls.isEmpty()){
-      List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls);
-      productImageRepository.deleteAll(imagesToDelete);
-      productRepository.delete(product);
-    }
+    // deleteImagesForProduct already deletes the images from the S3 and DB
+    // if(urls != null && !urls.isEmpty()){
+    //   List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls);
+    //   productImageRepository.deleteAll(imagesToDelete);
+    // }
+    productRepository.delete(product);
     return null;
   }
 }

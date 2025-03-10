@@ -15,14 +15,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.ydkulks.TheDrip.models.CategorySeriesSizesColorsDTO;
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
+import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductResponseDTO;
 import dev.ydkulks.TheDrip.models.ProductSeriesModel;
+import dev.ydkulks.TheDrip.models.ProductSizesModel;
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.models.UserReviewsModel;
 import dev.ydkulks.TheDrip.repos.ProductCategoriesRepository;
+import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductSeriesRepository;
+import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
 import dev.ydkulks.TheDrip.repos.UserRepo;
 import dev.ydkulks.TheDrip.services.ProductService;
 import dev.ydkulks.TheDrip.services.UserReviewsService;
@@ -37,6 +41,8 @@ public class ProductController {
   @Autowired private ProductSeriesRepository productSeriesRepository;
   @Autowired private UserReviewsService userReviewsService;
   @Autowired private ProductRepository productRepository;
+  @Autowired private ProductColorsRepository productColorsRepository;
+  @Autowired private ProductSizesRepository productSizesRepository;
 
   // NOTE: Get product by ID
   @GetMapping("/product")
@@ -53,9 +59,12 @@ public class ProductController {
   // TODO: Add stock, color and size filters (not just one ID, but handle an array of IDs)
   @GetMapping("/products")
   public ResponseEntity<?> allProducts(
-      @RequestParam(required = false) List<Integer> categoryIds, // Handle array
+      @RequestParam(required = false) List<Integer> colorIds,
+      @RequestParam(required = false) List<Integer> sizeIds,
+      @RequestParam(required = false) Boolean inStock,
+      @RequestParam(required = false) List<Integer> categoryIds,
       @RequestParam(required = false) Integer userId,
-      @RequestParam(required = false) List<Integer> seriesIds, // Handle array
+      @RequestParam(required = false) List<Integer> seriesIds,
       @RequestParam(required = false) Double minPrice,
       @RequestParam(required = false) Double maxPrice,
       @RequestParam(required = false) String sortBy,
@@ -67,6 +76,14 @@ public class ProductController {
       Pageable pageable = PageRequest.of(page, size);
 
       // Fetch the entities based on the IDs
+      List<ProductColorsModel> colors =
+        (colorIds != null && !colorIds.isEmpty())
+            ? productColorsRepository.findAllById(colorIds)
+            : null;
+      List<ProductSizesModel> sizes =
+        (sizeIds != null && !sizeIds.isEmpty())
+            ? productSizesRepository.findAllById(sizeIds)
+            : null;
       List<ProductCategoriesModel> categories =
         (categoryIds != null && !categoryIds.isEmpty())
             ? productCategoriesRepository.findAllById(categoryIds)
@@ -80,7 +97,7 @@ public class ProductController {
       // Call the getProductByFilters service
       Page<ProductResponseDTO> products =
           productService.getProductsByFilters(
-              categories, user, series, minPrice, maxPrice, sortBy, sortDirection, searchTerm, pageable);
+              colors, sizes, inStock, categories, user, series, minPrice, maxPrice, sortBy, sortDirection, searchTerm, pageable);
 
       return new ResponseEntity<Page<ProductResponseDTO>>(products, HttpStatus.OK);
 

@@ -8,4 +8,5 @@ import dev.ydkulks.TheDrip.models.ProductProductImageModel;
 // JpaRepository<TableModel, PrimaryKeyType>
 @Repository
 public interface ProductProductImageRepository extends JpaRepository<ProductProductImageModel, Integer> {
+  long countByProductId(Integer productId);
 }

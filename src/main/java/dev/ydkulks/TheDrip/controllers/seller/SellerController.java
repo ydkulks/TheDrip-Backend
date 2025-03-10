@@ -86,6 +86,12 @@ public class SellerController {
     try{
       // Does the product exists?
       boolean product = productRepository.existsById(Integer.parseInt(productId));
+      long imgCount = productProductImageRepository.countByProductId(Integer.parseInt(productId));
+      if (imgCount > 5) {
+        return new ResponseEntity<>(
+            "Maximum number of images (" + 5 + ") reached for product " + productId,
+            HttpStatus.NOT_ACCEPTABLE);
+      }
       if (product) {
         // Upload image to S3
         List<CompletableFuture<PutObjectResponse>> responses = productImageService
@@ -110,7 +116,7 @@ public class SellerController {
           int imgId = savedImage.getImg_id();
 
           productImageLink = new ProductProductImageModel();
-          productImageLink.setProduct_id(Integer.parseInt(productId));
+          productImageLink.setProductId(Integer.parseInt(productId));
           productImageLink.setImg_id(imgId);
           productProductImageRepository.save(productImageLink);
         } else {
@@ -165,19 +171,44 @@ public class SellerController {
     return productImageService.getAllImages("thedrip").join();
   }
 
+  @DeleteMapping("/{username}/{productId}/{image}")
+  public ResponseEntity<?> deleteImages(@PathVariable String username, @PathVariable Integer productId, @PathVariable String image) {
+    String imgPath = username + "/" + productId + "/" + image;
+    ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
+    if (imageRecord == null) {
+      return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+    }
+    productImageService.deleteImageForProduct("thedrip", username, productId, image);
+    return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
+  }
+
   @DeleteMapping("/{username}/{productId}/image")
-  public void deleteImages(@PathVariable String username, @PathVariable Integer productId) {
+  public ResponseEntity<?> deleteImages(@PathVariable String username, @PathVariable Integer productId) {
+    String imgPath = "/" + username + "/" + productId + "/";
+    ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
+    if (imageRecord == null) {
+      return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+    }
     productImageService.deleteImagesForProduct("thedrip", username, productId);
+    return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
   }
 
   @DeleteMapping("/{username}/product/image")
-  public void deleteImages(@PathVariable String username) {
+  public ResponseEntity<?> deleteImages(@PathVariable String username) {
+    String imgPath = "/" + username + "/";
+    ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
+    if (imageRecord == null) {
+      return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+    }
     productImageService.deleteImagesForSeller("thedrip", username);
+    return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
   }
 
+  // TODO: Move this to ADMIN Controller
   @DeleteMapping("/all/product/image")
-  public void deleteImages() {
+  public ResponseEntity<?> deleteImages() {
     productImageService.deleteAllImages("thedrip");
+    return new ResponseEntity<>("Deleted: All images of all products", HttpStatus.OK);
   }
 
   @DeleteMapping("/product")

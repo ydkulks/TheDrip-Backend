@@ -4,8 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.repos.ProductImageRepository;
-
+import jakarta.transaction.Transactional;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -258,15 +259,44 @@ public class ProductImageService {
         });
     }
 
+    @Transactional
+    public CompletableFuture<List<String>> deleteImageForProduct(
+      String bucket,
+      String sellerName,
+      Integer productId,
+      String imageName) {
+        CompletableFuture<List<String>> urls = deleteMultipleImages( "thedrip", sellerName+"/"+ productId+"/"+imageName);
+        if(urls.join() != null && !urls.join().isEmpty()){
+          List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls.join());
+          productImageRepository.deleteAll(imagesToDelete);
+        }
+        return urls;
+    }
+
     public CompletableFuture<List<String>> deleteImagesForProduct(String bucket, String sellerName, Integer productId) {
-        return deleteMultipleImages(bucket, sellerName + "/" + productId + "/");
+      CompletableFuture<List<String>> urls = deleteMultipleImages(bucket, sellerName + "/" + productId + "/");
+      if(urls.join() != null && !urls.join().isEmpty()){
+        List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls.join());
+        productImageRepository.deleteAll(imagesToDelete);
+      }
+      return urls;
     }
 
-    public void deleteImagesForSeller(String bucket, String sellerName) {
-        deleteMultipleImages(bucket, sellerName + "/");
+    public CompletableFuture<List<String>> deleteImagesForSeller(String bucket, String sellerName) {
+      CompletableFuture<List<String>> urls = deleteMultipleImages(bucket, sellerName + "/");
+      if(urls.join() != null && !urls.join().isEmpty()){
+        List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls.join());
+        productImageRepository.deleteAll(imagesToDelete);
+      }
+      return urls;
     }
 
-    public void deleteAllImages(String bucket) {
-        deleteMultipleImages(bucket, "");
+    public CompletableFuture<List<String>> deleteAllImages(String bucket) {
+      CompletableFuture<List<String>> urls = deleteMultipleImages(bucket, "");
+      if(urls.join() != null && !urls.join().isEmpty()){
+        List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls.join());
+        productImageRepository.deleteAll(imagesToDelete);
+      }
+      return urls;
     }
 }

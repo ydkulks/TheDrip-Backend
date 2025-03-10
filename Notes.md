@@ -28,7 +28,7 @@
         - [ ] Stripe integration
 - [x] Products
     - [x] Upload images
-        - [x] Base64
+        - [x] Store S3 meta-data in DB
         - [x] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
             - [x] Upload multiple images
             - [x] Get presigned link for one image
@@ -36,8 +36,8 @@
             - [x] Fetch presigned link only if existing link is expired
             - [x] Update images
             - [x] Delete images
-            - [ ] Limit images per product
-            - [ ] Add product rating
+        - [x] Limit images per product
+        - [ ] Filter to fetch specified number of images with product details
     - [x] Upload product details
     - [x] Update product details
     - [x] Link images on S3 to its associated product
@@ -48,6 +48,8 @@
     - [x] Pagination
     - [x] Product sold
     - [x] Delete product
+    - [ ] Add product rating
+    - [ ] Product Discount
 - [ ] Feedback form
 - [ ] Jaspersoft report
 
@@ -273,7 +275,7 @@ Open the app and create server and database before moving on with the next step.
     - **Filter products**: Apply filters to products (e.g., price range, brand).
 
         ```sh
-        curl --location 'http://localhost:8080/api/products?userId=2&categoryIds=5,10&seriesIds=1,2&minPrice=10&maxPrice=100&page=0&size=10'
+        curl --location 'http://localhost:8080/api/products?userId=2&categoryIds=5,10&seriesIds=1,2&colorIds=2,3&sizeIds=4,5&isStock=true&minPrice=10&maxPrice=100&page=0&size=10'
         ```
 
     - **Sort products**: Sort products based on a specific field in ascending or descending order.
