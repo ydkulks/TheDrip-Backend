@@ -213,6 +213,7 @@ public class ProductService {
       String sortBy,
       String sortDirection,
       String searchTerm,
+      Integer imgCount,
       Pageable pageable) {
 
     Specification<ProductModel> spec =
@@ -250,6 +251,7 @@ public class ProductService {
           product -> {
             List<String> s3Paths =
               product.getImages().stream()
+              .limit(imgCount)
               .map(ProductImageModel::getImgPath)
               .collect(Collectors.toList());
 

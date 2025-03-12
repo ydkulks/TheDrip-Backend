@@ -56,7 +56,6 @@ public class ProductController {
     }
   }
 
-  // TODO: Add stock, color and size filters (not just one ID, but handle an array of IDs)
   @GetMapping("/products")
   public ResponseEntity<?> allProducts(
       @RequestParam(required = false) List<Integer> colorIds,
@@ -70,6 +69,7 @@ public class ProductController {
       @RequestParam(required = false) String sortBy,
       @RequestParam(required = false) String sortDirection,
       @RequestParam(required = false) String searchTerm,
+      @RequestParam Integer imgCount,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
     try {
@@ -97,7 +97,7 @@ public class ProductController {
       // Call the getProductByFilters service
       Page<ProductResponseDTO> products =
           productService.getProductsByFilters(
-              colors, sizes, inStock, categories, user, series, minPrice, maxPrice, sortBy, sortDirection, searchTerm, pageable);
+              colors, sizes, inStock, categories, user, series, minPrice, maxPrice, sortBy, sortDirection, searchTerm, imgCount, pageable);
 
       return new ResponseEntity<Page<ProductResponseDTO>>(products, HttpStatus.OK);
 
