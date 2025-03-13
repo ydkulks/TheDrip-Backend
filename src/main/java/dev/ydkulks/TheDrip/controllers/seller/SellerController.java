@@ -173,48 +173,64 @@ public class SellerController {
 
   @DeleteMapping("/{username}/{productId}/{image}")
   public ResponseEntity<?> deleteImages(@PathVariable String username, @PathVariable Integer productId, @PathVariable String image) {
-    String imgPath = username + "/" + productId + "/" + image;
-    ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
-    if (imageRecord == null) {
-      return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+    try{
+      String imgPath = username + "/" + productId + "/" + image;
+      ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
+      if (imageRecord == null) {
+        return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+      }
+      productImageService.deleteImageForProduct("thedrip", username, productId, image);
+      return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
-    productImageService.deleteImageForProduct("thedrip", username, productId, image);
-    return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
   }
 
   @DeleteMapping("/{username}/{productId}/image")
   public ResponseEntity<?> deleteImages(@PathVariable String username, @PathVariable Integer productId) {
-    String imgPath = "/" + username + "/" + productId + "/";
-    ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
-    if (imageRecord == null) {
-      return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+    try{
+      String imgPath = "/" + username + "/" + productId + "/";
+      // ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
+      // if (imageRecord == null) {
+      //   return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+      // }
+      productImageService.deleteImagesForProduct("thedrip", username, productId);
+      return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
-    productImageService.deleteImagesForProduct("thedrip", username, productId);
-    return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
   }
 
   @DeleteMapping("/{username}/product/image")
   public ResponseEntity<?> deleteImages(@PathVariable String username) {
-    String imgPath = "/" + username + "/";
-    ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
-    if (imageRecord == null) {
-      return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+    try{
+      String imgPath = "/" + username + "/";
+      // ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
+      // if (imageRecord == null) {
+      //   return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+      // }
+      productImageService.deleteImagesForSeller("thedrip", username);
+      return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
-    productImageService.deleteImagesForSeller("thedrip", username);
-    return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
   }
 
   // TODO: Move this to ADMIN Controller
   @DeleteMapping("/all/product/image")
   public ResponseEntity<?> deleteImages() {
-    productImageService.deleteAllImages("thedrip");
-    return new ResponseEntity<>("Deleted: All images of all products", HttpStatus.OK);
+    try{
+      productImageService.deleteAllImages("thedrip");
+      return new ResponseEntity<>("Deleted: All images of all products", HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @DeleteMapping("/product")
-  public ResponseEntity<?> deleteProductById(@RequestParam(required = true) Integer productId) {
+  public ResponseEntity<?> deleteProductById(@RequestParam(required = true) List<Integer> productId) {
     try {
-      productService.deleteProduct(productId);
+      productService.deleteProducts(productId);
       return new ResponseEntity<>(productId, HttpStatus.OK);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);

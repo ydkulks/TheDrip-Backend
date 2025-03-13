@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -287,21 +289,55 @@ public class ProductService {
 
   // NOTE: Delete
   @Transactional
-  public Optional<ProductModel> deleteProduct(Integer productId) {
-    ProductModel product = productRepository.findById(productId).orElseThrow(() ->
-        new IllegalArgumentException("Invalid product ID: " + productId)
-      );
-    List<String> urls = productImageService.deleteImagesForProduct(
-        "thedrip",
-        product.getUser().getUsername(),
-        product.getProductId()
-      ).join();
-    // deleteImagesForProduct already deletes the images from the S3 and DB
-    // if(urls != null && !urls.isEmpty()){
-    //   List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls);
-    //   productImageRepository.deleteAll(imagesToDelete);
-    // }
-    productRepository.delete(product);
-    return null;
+  public void deleteProducts(List<Integer> productIds) {
+    Logger logger = LoggerFactory.getLogger(this.getClass());
+    List<ProductModel> productsToDelete = productRepository.findAllById(productIds);
+
+    if (productsToDelete.size() != productIds.size()) {
+      // Handle the case where some product IDs were not found
+      List<Integer> foundProductIds = productsToDelete.stream()
+        .map(ProductModel::getProductId)
+        .collect(Collectors.toList());
+
+      List<Integer> notFoundProductIds = productIds.stream()
+        .filter(id -> !foundProductIds.contains(id))
+        .collect(Collectors.toList());
+
+      throw new IllegalArgumentException(
+          "Invalid product IDs: " + notFoundProductIds
+          );
+    }
+
+    for (ProductModel product : productsToDelete) {
+      try {
+        // Ensure images are deleted *before* deleting the product
+        productImageService.deleteImagesForProduct(
+            "thedrip",
+            product.getUser().getUsername(),
+            product.getProductId()
+            ).join();
+
+        // Now it's safe to delete the product
+        productRepository.delete(product);
+        logger.info("Product ID {} deleted successfully.", product.getProductId());
+
+      } catch (Exception e) {
+        // If image deletion fails, *do not* delete the product
+        logger.error(
+            "Error deleting images for product ID {}. Product will NOT be deleted. {}",
+            product.getProductId(),
+            e.getMessage(),
+            e
+            );
+        // Consider re-throwing the exception or handling it in a way that
+        // prevents the transaction from committing if image deletion is critical.
+        throw new RuntimeException(
+            "Failed to delete images for product ID " + product.getProductId() +
+            ". Product deletion aborted.",
+            e
+            ); //Re-throwing to rollback transaction
+      }
+    }
+
   }
 }

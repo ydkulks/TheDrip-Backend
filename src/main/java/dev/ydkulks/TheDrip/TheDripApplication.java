@@ -21,7 +21,12 @@ public class TheDripApplication {
       @Override
       public void addCorsMappings(CorsRegistry registry) {
         // WARN: Change front-end URL in prod
-        registry.addMapping("/**").allowedOrigins("http://localhost:5173");
+        registry
+          .addMapping("/**")
+          .allowedOrigins("http://localhost:5173")
+          .allowedMethods("GET", "POST","DELETE","OPTIONS")
+          .allowedHeaders("Authorization", "Content-Type") // Allow Authorization header
+          .allowCredentials(true);
       }
     };
   }
