@@ -1,5 +1,6 @@
 package dev.ydkulks.TheDrip.services;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -18,10 +19,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import dev.ydkulks.TheDrip.models.CategorySeriesSizesColorsDTO;
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
+import dev.ydkulks.TheDrip.models.ProductCreationDTO;
 import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.models.ProductProductColorsModel;
@@ -56,74 +59,97 @@ public class ProductService {
   @Autowired ProductRepository productRepository;
   @Autowired ProductImageRepository productImageRepository;
 
+  Logger logger = LoggerFactory.getLogger(this.getClass());
   // NOTE: Create
   @Transactional
-  public ProductModel createOrUpdateProduct(
-    String productName,
-    Integer categoryId,
-    Integer userId,
-    Integer seriesId,
-    Double productPrice,
-    String productDescription,
-    Integer productStock,
-    Integer productSold,
-    List<Integer> sizeIds,
-    List<Integer> colorIds
-  ) {
-    // Check if product exists
-    Optional<ProductModel> existingProductOpt = productRepository.findByProductName(productName);
-    ProductCategoriesModel category = productCategoriesRepository
-      .findById(categoryId)
-      .orElseThrow(() ->
-        new IllegalArgumentException("Invalid category ID: " + categoryId)
-      );
-    UserModel user = userRepo
-      .findById(userId)
-      .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
-    ProductSeriesModel series = productSeriesRepository
-      .findById(seriesId)
-      .orElseThrow(() -> new IllegalArgumentException("Invalid series ID: " + seriesId));
-
-    ProductModel product;
-    if (existingProductOpt.isPresent()) {
-      product = existingProductOpt.get();
-      System.out.println("Updating existing product: " + product.getProductId());
-    } else {
-      product = new ProductModel();
-      System.out.println("Creating new product");
+    public List<ProductModel> createProducts(List<ProductCreationDTO> productDataList) {
+        List<ProductModel> createdProducts = new ArrayList<>();
+        for (ProductCreationDTO productData : productDataList) {
+            ProductModel product = new ProductModel();
+            logger.info("Creating new product");
+            createdProducts.add(setProductDetails(product, productData.getProductName(), productData.getCategoryId(), productData.getUserId(), productData.getSeriesId(), productData.getProductPrice(), productData.getProductDescription(), productData.getProductStock(), productData.getProductSold(), productData.getProductSizes(), productData.getProductColors()));
+        }
+        return createdProducts;
     }
 
-    product.setProductName(productName);
-    product.setCategory(category);
-    product.setUser(user);
-    product.setSeries(series);
-    product.setProductPrice(productPrice);
-    product.setProductDescription(productDescription);
-    product.setProductStock(productStock);
-    product.setProductSold(productSold);
-
-    // Handle sizes
-    Set<ProductSizesModel> sizes = new HashSet<>();
-    for (Integer sizeId : sizeIds) {
-      ProductSizesModel size = productSizesRepository
-        .findById(sizeId)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid size ID: " + sizeId));
-      sizes.add(size);
+  // NOTE: Update
+  @Transactional
+  public List<ProductModel> updateProducts( 
+      @RequestParam List<Integer> productIds, 
+      List<ProductCreationDTO> productUpdateDataList) {
+    if (productIds.size() != productUpdateDataList.size()) {
+      throw new IllegalArgumentException("Number of product IDs and update data entries must match.");
     }
-    product.setSizes(sizes);
 
-    // Handle colors
-    Set<ProductColorsModel> colors = new HashSet<>();
-    for (Integer colorId : colorIds) {
-      ProductColorsModel color = productColorsRepository
-        .findById(colorId)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid color ID: " + colorId));
-      colors.add(color);
+    List<ProductModel> updatedProducts = new ArrayList<>();
+    for (int i = 0; i < productIds.size(); i++) {
+      Integer productId = productIds.get(i);
+      ProductCreationDTO updateData = productUpdateDataList.get(i);
+
+      Optional<ProductModel> existingProductOpt = productRepository.findById(productId);
+      ProductModel product = existingProductOpt.orElseThrow(() -> new IllegalArgumentException("Product with ID " + productId + " not found."));
+
+      logger.info("Updating existing product: ", product.getProductId());
+
+      updatedProducts.add(setProductDetails(product, updateData.getProductName(), updateData.getCategoryId(), updateData.getUserId(), updateData.getSeriesId(), updateData.getProductPrice(), updateData.getProductDescription(), updateData.getProductStock(), updateData.getProductSold(), updateData.getProductSizes(), updateData.getProductColors()));
     }
-    product.setColors(colors);
-
-    return productRepository.save(product);
+    return updatedProducts;
   }
+
+  private ProductModel setProductDetails(
+      ProductModel product,
+      String productName,
+      Integer categoryId,
+      Integer userId,
+      Integer seriesId,
+      Double productPrice,
+      String productDescription,
+      Integer productStock,
+      Integer productSold,
+      List<Integer> sizeIds,
+      List<Integer> colorIds
+      ) {
+      ProductCategoriesModel category = productCategoriesRepository
+        .findById(categoryId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid category ID: " + categoryId));
+      UserModel user = userRepo
+        .findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
+      ProductSeriesModel series = productSeriesRepository
+        .findById(seriesId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid series ID: " + seriesId));
+
+      product.setProductName(productName);
+      product.setCategory(category);
+      product.setUser(user);
+      product.setSeries(series);
+      product.setProductPrice(productPrice);
+      product.setProductDescription(productDescription);
+      product.setProductStock(productStock);
+      product.setProductSold(productSold);
+
+      // Handle sizes
+      Set<ProductSizesModel> sizes = new HashSet<>();
+      for (Integer sizeId : sizeIds) {
+        ProductSizesModel size = productSizesRepository
+          .findById(sizeId)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid size ID: " + sizeId));
+        sizes.add(size);
+      }
+      product.setSizes(sizes);
+
+      // Handle colors
+      Set<ProductColorsModel> colors = new HashSet<>();
+      for (Integer colorId : colorIds) {
+        ProductColorsModel color = productColorsRepository
+          .findById(colorId)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid color ID: " + colorId));
+        colors.add(color);
+      }
+      product.setColors(colors);
+
+      return productRepository.save(product);
+    }
 
   @Transactional
   public ProductColorsModel createOrUpdateColor(ProductColorsModel newColor) {
@@ -290,7 +316,6 @@ public class ProductService {
   // NOTE: Delete
   @Transactional
   public void deleteProducts(List<Integer> productIds) {
-    Logger logger = LoggerFactory.getLogger(this.getClass());
     List<ProductModel> productsToDelete = productRepository.findAllById(productIds);
 
     if (productsToDelete.size() != productIds.size()) {

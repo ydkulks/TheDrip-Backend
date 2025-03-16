@@ -1,7 +1,10 @@
 package dev.ydkulks.TheDrip.controllers.seller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.ToIntFunction;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,33 +48,32 @@ public class SellerController {
   @Autowired private ProductService productService;
   @Autowired private ProductRepository productRepository;
 
-  // NOTE: Create/Update product details
-  @PostMapping("/product")
-  // public ResponseEntity<ProductCreationModel> createProduct(@RequestBody ProductCreationDTO data) {
-  public ResponseEntity<String> createProduct(@RequestBody ProductCreationDTO data) {
+  // NOTE: Create product details
+  @PostMapping("/products")
+  public ResponseEntity<List<String>> createProducts(@RequestBody List<ProductCreationDTO> dataList) {
     try {
-      // System.out.println("ProductName: "+data.getProductName());
-      // System.out.println("CategoryId: "+data.getCategoryId());
-      // System.out.println("UserId: "+data.getUserId());
-      // System.out.println("UserId: "+data.getSeriesId());
-      // System.out.println("Price: "+data.getProductPrice());
-      // System.out.println("Description: "+data.getProductDescription());
-      // System.out.println("SizeId: "+ data.getProductSizes());
-      // System.out.println("ColorId: "+ data.getProductColors());
+      List<ProductCreationDTO> productCreationDataList = new ArrayList<>();
+      for (ProductCreationDTO data : dataList) {
+        productCreationDataList.add(new ProductCreationDTO(
+            data.getProductName(),
+            data.getCategoryId(),
+            data.getUserId(),
+            data.getSeriesId(),
+            data.getProductPrice(),
+            data.getProductDescription(),
+            data.getProductStock(),
+            data.getProductSold(),
+            data.getProductSizes(),
+            data.getProductColors()));
+      }
 
-      ProductModel product = productService.createOrUpdateProduct(
-        data.getProductName(),
-        data.getCategoryId(),
-        data.getUserId(),
-        data.getSeriesId(),
-        data.getProductPrice(),
-        data.getProductDescription(),
-        data.getProductStock(),
-        data.getProductSold(),
-        data.getProductSizes(),
-        data.getProductColors()
-      );
-      return new ResponseEntity<>(product.getProductName(), HttpStatus.CREATED);
+      List<ProductModel> createdProducts = productService.createProducts(productCreationDataList);
+      List<String> productNames = new ArrayList<>();
+      for (ProductModel product : createdProducts) {
+        productNames.add(product.getProductName());
+      }
+
+      return new ResponseEntity<>(productNames, HttpStatus.CREATED);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
@@ -81,13 +84,12 @@ public class SellerController {
   public ResponseEntity<?> uploadImage(
       @PathVariable String username,
       @PathVariable String productId,
-      @RequestParam("file") List<MultipartFile> files
-      ) throws IOException {
-    try{
+      @RequestParam("file") List<MultipartFile> files) throws IOException {
+    try {
       // Does the product exists?
       boolean product = productRepository.existsById(Integer.parseInt(productId));
       long imgCount = productProductImageRepository.countByProductId(Integer.parseInt(productId));
-      if (imgCount > 5) {
+      if (imgCount + files.size() > 5) {
         return new ResponseEntity<>(
             "Maximum number of images (" + 5 + ") reached for product " + productId,
             HttpStatus.NOT_ACCEPTABLE);
@@ -138,7 +140,7 @@ public class SellerController {
   @PostMapping("/series")
   @Transactional
   public ResponseEntity<?> createOrUpdateSeries(@RequestParam String seriesName) {
-    try{
+    try {
       ProductSeriesModel series = productService.createOrUpdateSeries(seriesName);
       return new ResponseEntity<>(series, HttpStatus.OK);
     } catch (IllegalArgumentException e) {
@@ -148,9 +150,10 @@ public class SellerController {
 
   // NOTE: Get presigned URL for 1 user ,1 of their product and 1 image
   @GetMapping("/{username}/{productId}/{img_name}")
-  public String getImageLink(@PathVariable String username, @PathVariable String productId, @PathVariable String img_name) {
-    String filePath = String.format("%s/%s/%s",username,productId,img_name);
-    return productImageService.getPresignedImageURL("thedrip",filePath);
+  public String getImageLink(@PathVariable String username, @PathVariable String productId,
+      @PathVariable String img_name) {
+    String filePath = String.format("%s/%s/%s", username, productId, img_name);
+    return productImageService.getPresignedImageURL("thedrip", filePath);
   }
 
   // NOTE: Get presigned URL for 1 user, 1 of their product's images
@@ -172,8 +175,9 @@ public class SellerController {
   }
 
   @DeleteMapping("/{username}/{productId}/{image}")
-  public ResponseEntity<?> deleteImages(@PathVariable String username, @PathVariable Integer productId, @PathVariable String image) {
-    try{
+  public ResponseEntity<?> deleteImages(@PathVariable String username, @PathVariable Integer productId,
+      @PathVariable String image) {
+    try {
       String imgPath = username + "/" + productId + "/" + image;
       ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
       if (imageRecord == null) {
@@ -186,13 +190,47 @@ public class SellerController {
     }
   }
 
+  // NOTE: Update product details
+  @PutMapping("/products")
+  public ResponseEntity<List<String>> updateProducts(
+      @RequestParam List<Integer> productIds,
+      @RequestBody List<ProductCreationDTO> dataList) {
+    try {
+      List<ProductCreationDTO> productUpdateDataList = new ArrayList<>();
+      for (ProductCreationDTO data : dataList) {
+        productUpdateDataList.add(new ProductCreationDTO(
+            data.getProductName(),
+            data.getCategoryId(),
+            data.getUserId(),
+            data.getSeriesId(),
+            data.getProductPrice(),
+            data.getProductDescription(),
+            data.getProductStock(),
+            data.getProductSold(),
+            data.getProductSizes(),
+            data.getProductColors()));
+      }
+
+      List<ProductModel> updatedProducts = productService.updateProducts(productIds, productUpdateDataList);
+      List<String> productNames = new ArrayList<>();
+      for (ProductModel product : updatedProducts) {
+        productNames.add(product.getProductName());
+      }
+
+      return new ResponseEntity<>(productNames, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @DeleteMapping("/{username}/{productId}/image")
   public ResponseEntity<?> deleteImages(@PathVariable String username, @PathVariable Integer productId) {
-    try{
+    try {
       String imgPath = "/" + username + "/" + productId + "/";
-      // ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
+      // ProductImageModel imageRecord =
+      // productImageRepository.findByImgPath(imgPath).orElse(null);
       // if (imageRecord == null) {
-      //   return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+      // return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
       // }
       productImageService.deleteImagesForProduct("thedrip", username, productId);
       return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
@@ -203,11 +241,12 @@ public class SellerController {
 
   @DeleteMapping("/{username}/product/image")
   public ResponseEntity<?> deleteImages(@PathVariable String username) {
-    try{
+    try {
       String imgPath = "/" + username + "/";
-      // ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
+      // ProductImageModel imageRecord =
+      // productImageRepository.findByImgPath(imgPath).orElse(null);
       // if (imageRecord == null) {
-      //   return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
+      // return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
       // }
       productImageService.deleteImagesForSeller("thedrip", username);
       return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
@@ -219,7 +258,7 @@ public class SellerController {
   // TODO: Move this to ADMIN Controller
   @DeleteMapping("/all/product/image")
   public ResponseEntity<?> deleteImages() {
-    try{
+    try {
       productImageService.deleteAllImages("thedrip");
       return new ResponseEntity<>("Deleted: All images of all products", HttpStatus.OK);
     } catch (IllegalArgumentException e) {

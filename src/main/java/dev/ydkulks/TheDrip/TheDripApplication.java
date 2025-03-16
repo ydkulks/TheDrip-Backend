@@ -24,7 +24,7 @@ public class TheDripApplication {
         registry
           .addMapping("/**")
           .allowedOrigins("http://localhost:5173")
-          .allowedMethods("GET", "POST","DELETE","OPTIONS")
+          .allowedMethods("GET", "POST","PUT","DELETE","OPTIONS")
           .allowedHeaders("Authorization", "Content-Type") // Allow Authorization header
           .allowCredentials(true);
       }
