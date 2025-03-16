@@ -10,6 +10,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,6 +44,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 @RestController
 @RequestMapping("/seller")
 public class SellerController {
+  private static final Logger logger = LoggerFactory.getLogger(SellerController.class);
 
   @Autowired private ProductImageRepository productImageRepository;
   @Autowired private ProductImageService productImageService;
@@ -97,7 +101,7 @@ public class SellerController {
       if (product) {
         // Upload image to S3
         List<CompletableFuture<PutObjectResponse>> responses = productImageService
-          .uploadMultipleFilesAsync("thedrip", username, productId, files);
+            .uploadMultipleFilesAsync("thedrip", username, productId, files);
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
       }
 
@@ -135,6 +139,156 @@ public class SellerController {
       return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
+  }
+
+  @PostMapping("/{username}/product/images")
+  @Transactional
+  public ResponseEntity<?> bulkUploadImages(
+      // @RequestParam List<MultipartFile> productFiles,
+      // @RequestPart("productFiles") Map<String, List<MultipartFile>> productFiles,
+      @RequestParam Map<String, MultipartFile> files,
+      @RequestParam Map<String, String> productIds,
+      @PathVariable String username) throws IOException {
+    logger.info("bulkUploadImages called for username: {}", username); // Entry log
+    Map<String, java.util.List<MultipartFile>> productFiles = new HashMap<>();
+
+    try {
+      for (String fileKey : files.keySet()) {
+        if (fileKey.startsWith("file")) {
+          String fileNumber = fileKey.substring(4);
+          String productIdKey = "productId" + fileNumber;
+          String productId = productIds.get(productIdKey);
+
+          if (!productFiles.containsKey(productId)) {
+            productFiles.put(productId, new java.util.ArrayList<>());
+          }
+          productFiles.get(productId).add(files.get(fileKey));
+        }
+      }
+      // System.out.println(productFiles.entrySet());
+
+      // if (productFiles == null || productFiles.isEmpty()) {
+      // String errorMessage = "No product files provided in the request.";
+      // logger.warn(errorMessage);
+      // return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+      // }
+      // productFiles.forEach(files -> {
+      // System.out.println(files.getOriginalFilename());
+      // });
+
+      for (Map.Entry<String, List<MultipartFile>> entry : productFiles.entrySet()) {
+        String productId = entry.getKey();
+        List<MultipartFile> filesOfProduct = entry.getValue();
+
+        // logger.info("Processing product ID: {} with {} files", productId, filesOfProduct.size());
+
+        if (!productRepository.existsById(Integer.parseInt(productId))) {
+          String errorMessage = "Product with ID " + productId + " not found.";
+          logger.error(errorMessage);
+          return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+        }
+
+        long existingImgCount = productProductImageRepository.countByProductId(Integer.parseInt(productId));
+        long totalImgCount = existingImgCount + filesOfProduct.size();
+
+        if (totalImgCount > 5) {
+          String errorMessage = "Maximum number of images (5) reached for product "
+              + productId
+              + ". Current count: "
+              + existingImgCount
+              + ", Attempted upload: "
+              + filesOfProduct.size();
+          logger.warn(errorMessage);
+          return new ResponseEntity<>(errorMessage, HttpStatus.PAYLOAD_TOO_LARGE);
+        }
+
+        // Upload image to S3
+        try {
+          // logger.info("Starting S3 upload for product {}", productId);
+          List<CompletableFuture<PutObjectResponse>> responses = productImageService.uploadMultipleFilesAsync("thedrip",
+              username, productId, filesOfProduct);
+
+          CompletableFuture<Void> allOf = CompletableFuture.allOf(responses.toArray(new CompletableFuture[0]));
+
+          allOf.exceptionally(
+              throwable -> {
+                logger.error(
+                    "Error during S3 upload for product {}:", productId, throwable); // Log the entire exception
+                return null;
+              });
+
+          allOf.join();
+
+          // logger.info("S3 uploads completed for product {}", productId);
+
+        } catch (Exception e) {
+          String errorMessage = "Error during S3 upload for product " + productId + ": " + e.getMessage();
+          logger.error(errorMessage, e);
+          return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // Store in product_images and product_product_images
+        filesOfProduct.forEach(
+            file -> {
+              String imgPath = String.format("%s/%s/%s", username, productId, file.getOriginalFilename());
+              try {
+                // logger.info("Saving image metadata to DB for product {}, file: {}", productId,
+                //     file.getOriginalFilename());
+
+                // Check if image exists for that product
+                Optional<ProductImageModel> img = productImageRepository.findByImgPath(imgPath);
+                ProductImageModel image;
+                ProductProductImageModel productImageLink;
+
+                if (img.isEmpty()) {
+                  image = new ProductImageModel();
+                  image.setImg_name(file.getOriginalFilename());
+                  image.setImg_type(file.getContentType());
+                  image.setImgPath(imgPath);
+                  ProductImageModel savedImage = productImageRepository.save(image);
+
+                  int imgId = savedImage.getImg_id();
+
+                  productImageLink = new ProductProductImageModel();
+                  productImageLink.setProductId(Integer.parseInt(productId));
+                  productImageLink.setImg_id(imgId);
+                  productProductImageRepository.save(productImageLink);
+                  logger.info("New image saved for product {}, file: {}", productId, file.getOriginalFilename());
+
+                } else {
+                  image = img.get();
+                  // Update fields if needed, for example:
+                  image.setImg_name(file.getOriginalFilename());
+                  image.setImg_type(file.getContentType());
+                  productImageRepository.save(image); // Save the updated image
+                  logger.info("Image updated for product {}, file: {}", productId, file.getOriginalFilename());
+                }
+              } catch (Exception e) {
+                logger.error(
+                    "Error saving image metadata to DB for product {}:",
+                    productId,
+                    e); // Log the entire exception
+
+                throw new RuntimeException(
+                    "Failed to save image metadata for product " + productId,
+                    e); // Terminate processing if DB save fails
+              }
+            });
+        // logger.info("Database updates completed for product {}", productId);
+      }
+      logger.info("Bulk image upload successful for all products.");
+      return ResponseEntity.ok("Bulk image upload successful.");
+
+    } catch (NumberFormatException e) {
+      String errorMessage = "Invalid product ID format in request.";
+      logger.error(errorMessage, e);
+      return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+
+    } catch (Exception e) {
+      String errorMessage = "An error occurred during bulk image upload: " + e.getMessage();
+      logger.error(errorMessage, e);
+      return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @PostMapping("/series")

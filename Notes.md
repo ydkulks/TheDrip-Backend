@@ -38,6 +38,7 @@
             - [x] Delete images
         - [x] Limit images per product
         - [x] Filter to fetch specified number of images with product details
+        - [x] Bulk upload
     - [x] Upload product details
     - [x] Update product details
     - [x] Link images on S3 to its associated product
