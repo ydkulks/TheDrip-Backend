@@ -1,5 +1,6 @@
 package dev.ydkulks.TheDrip.repos;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -15,5 +16,7 @@ import dev.ydkulks.TheDrip.models.ProductModel;
 public interface ProductRepository extends JpaRepository<ProductModel, Integer>, JpaSpecificationExecutor<ProductModel> {
   Optional<ProductModel> findByProductName(String productName);
   Optional<ProductModel> findByProductId(Integer productId);
+  Page<ProductModel> findByProductIdIn(List<Integer> productIds, Pageable pageable);
+  List<ProductModel> findByProductIdIn(List<Integer> productIds);
   Page<ProductModel> findAll(Pageable pageable);
 }

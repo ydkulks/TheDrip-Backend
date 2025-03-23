@@ -190,13 +190,13 @@ Open the app and create server and database before moving on with the next step.
     ```
 
 3. **Products**
-    - **Create or Update product**: Create a new product under a user id or update an existing one.
+    - **Create products**: Create new products under a user id.
 
         ```sh
-        curl --location 'http://localhost:8080/seller/product' \
+        curl --location 'http://localhost:8080/seller/products' \
         --header 'Content-Type: application/json' \
         --header 'Authorization: Bearer {TOKEN}' \
-        --data '{
+        --data '[{
           "productName": "Edgerunner Blue Cargo Sweatpants",
           "categoryId": 7,
           "userId": 2,
@@ -209,7 +209,29 @@ Open the app and create server and database before moving on with the next step.
             1, 3, 5
           ],
           "productColors": [1, 2, 3]
-        }'
+        }]'
+        ```
+
+    - **Update products**: Update existing products.
+
+        ```sh
+        curl --location 'http://localhost:8080/seller/products?productId=7' \
+        --header 'Content-Type: application/json' \
+        --header 'Authorization: Bearer {TOKEN}' \
+        --data '[{
+          "productName": "Edgerunner Blue Cargo Sweatpants",
+          "categoryId": 7,
+          "userId": 2,
+          "seriesId": 1,
+          "productPrice": 45.00,
+          "productDescription": "Printed logo on the pocket. Drawstring waist, Side pocket. Zip back pocket",
+          "productStock": 100,
+          "productSold": 0,
+          "productSizes": [
+            1, 3, 5
+          ],
+          "productColors": [1, 2, 3]
+        }]'
         ```
 
     - **Upload or Update product images**: Upload product images to S3 bucket.
@@ -259,6 +281,12 @@ Open the app and create server and database before moving on with the next step.
 
         ```sh
         curl --location 'http://localhost:8080/api/product?id=1'
+        ```
+
+    - **Get products by IDs**: Retrieve specific products by its IDs (more than one) for updating. It returns IDs as values instead of names to make things easier for updating (no images).
+
+        ```sh
+        curl --location 'http://localhost:8080/api/productsallbyid?id=14,15'
         ```
 
     - **Get all products**: Retrieve a list of all products with their details (e.g., pagination, sorting).

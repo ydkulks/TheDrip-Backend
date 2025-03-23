@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.ydkulks.TheDrip.models.CategorySeriesSizesColorsDTO;
+import dev.ydkulks.TheDrip.models.ListProductResponseDTO;
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
@@ -49,6 +51,28 @@ public class ProductController {
   public ResponseEntity<ProductResponseDTO> product(@RequestParam(defaultValue = "1") int id) {
     // System.out.println("ProdId: " + id);
     ProductResponseDTO response = productService.getProductDetails(id);
+    if (response != null) {
+      return new ResponseEntity<>(response, HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @GetMapping("/productsbyid")
+  public ResponseEntity<?> productsByIds(@RequestParam List<Integer> id, @PageableDefault(size=10,page=0) Pageable pageable) {
+    // System.out.println("ProdId: " + id);
+    Page<ProductResponseDTO> response = productService.getProductByIds(id, pageable);
+    if (response != null) {
+      return new ResponseEntity<>(response, HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @GetMapping("/productsallbyid")
+  public ResponseEntity<?> productsAllByIds(@RequestParam List<Integer> id) {
+    // System.out.println("ProdId: " + id);
+    List<ListProductResponseDTO> response = productService.getAllProductByIdsNoImg(id);
     if (response != null) {
       return new ResponseEntity<>(response, HttpStatus.OK);
     } else {

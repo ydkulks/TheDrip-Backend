@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import dev.ydkulks.TheDrip.models.CategorySeriesSizesColorsDTO;
+import dev.ydkulks.TheDrip.models.ListProductResponseDTO;
 import dev.ydkulks.TheDrip.models.ProductCategoriesModel;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductCreationDTO;
@@ -197,6 +198,37 @@ public class ProductService {
     }
 
     return null;
+  }
+
+  @Transactional
+  public Page<ProductResponseDTO> getProductByIds(List<Integer> id, Pageable pageable) {
+    Page<ProductModel> products = productRepository.findByProductIdIn(id, pageable);
+    return products.map(product -> {
+        List<String> s3Paths = product.getImages()
+            .stream()
+            .map(ProductImageModel::getImgPath)
+            .collect(Collectors.toList());
+
+        List<String> imageUrls = s3Paths
+            .stream()
+            .map(path -> productImageService.getPresignedImageURL("thedrip", path))
+            .collect(Collectors.toList());
+
+        return new ProductResponseDTO(product, imageUrls);
+    });
+  }
+
+  @Transactional
+  public List<ListProductResponseDTO> getAllProductByIdsNoImg(List<Integer> id) {
+    List<ProductModel> products = productRepository.findByProductIdIn(id);
+    // return products;
+    return products.stream()
+      .map(
+          product -> {
+            // Create a ListProductResponseDTO from the ProductModel
+            return new ListProductResponseDTO(product); // Assuming you have a constructor that accepts ProductModel
+          })
+      .collect(Collectors.toList());
   }
 
   @Transactional

@@ -43,5 +43,26 @@ public class ProductResponseDTO {
           .collect(Collectors.toList());
         this.images = images;
     }
+
+    public ProductResponseDTO(ProductModel product, List<String> images) {
+        this.productId = product.getProductId();
+        this.productName = product.getProductName();
+        this.productDescription = product.getProductDescription();
+        this.productPrice = product.getProductPrice();
+        this.productStock = product.getProductStock();
+        this.productSold = product.getProductSold();
+        this.seriesName = product.getSeries().getSeriesName();
+        this.categoryName = product.getCategory().getCategoryName();
+        this.sellerName = product.getUser().getUsername();
+        this.sizes = product.getSizes()
+          .stream()
+          .map(ProductSizesModel::getSize_name)
+          .collect(Collectors.toList());
+        this.colors = product.getColors()
+          .stream()
+          .map(ProductColorsModel::getColor_name)
+          .collect(Collectors.toList());
+        this.images = images;
+    }
 }
 
