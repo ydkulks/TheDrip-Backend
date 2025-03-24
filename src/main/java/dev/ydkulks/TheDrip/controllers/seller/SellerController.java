@@ -34,6 +34,7 @@ import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.services.ProductImageService;
 import dev.ydkulks.TheDrip.services.ProductService;
 import jakarta.transaction.Transactional;
+import dev.ydkulks.TheDrip.models.ImageDeleteRequest;
 import dev.ydkulks.TheDrip.models.ProductCreationDTO;
 import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
@@ -328,22 +329,6 @@ public class SellerController {
     return productImageService.getAllImages("thedrip").join();
   }
 
-  @DeleteMapping("/{username}/{productId}/{image}")
-  public ResponseEntity<?> deleteImages(@PathVariable String username, @PathVariable Integer productId,
-      @PathVariable String image) {
-    try {
-      String imgPath = username + "/" + productId + "/" + image;
-      ProductImageModel imageRecord = productImageRepository.findByImgPath(imgPath).orElse(null);
-      if (imageRecord == null) {
-        return new ResponseEntity<>(imgPath, HttpStatus.NOT_FOUND);
-      }
-      productImageService.deleteImageForProduct("thedrip", username, productId, image);
-      return new ResponseEntity<>("Deleted: " + imgPath, HttpStatus.OK);
-    } catch (IllegalArgumentException e) {
-      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
-  }
-
   // NOTE: Update product details
   @PutMapping("/products")
   public ResponseEntity<List<String>> updateProducts(
@@ -372,6 +357,47 @@ public class SellerController {
       }
 
       return new ResponseEntity<>(productNames, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @DeleteMapping("/{username}/productIds/images")
+  public ResponseEntity<?> deleteImages(
+      @PathVariable String username, @RequestBody ImageDeleteRequest request) {
+    try {
+      List<Integer> productIds = request.getProductIds();
+      List<String> images = request.getImages();
+
+      if (productIds.size() != images.size()) {
+        return new ResponseEntity<>(
+            "Product ID and image list sizes must match.", HttpStatus.BAD_REQUEST);
+      }
+
+      List<String> imgPaths = new ArrayList<>();
+      for (int i = 0; i < productIds.size(); i++) {
+        imgPaths.add(username + "/" + productIds.get(i) + "/" + images.get(i));
+      }
+
+      // System.out.println("Constructed imgPaths: " + imgPaths);
+
+      List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(imgPaths);
+
+      // System.out.println("imagesToDelete.size(): " + imagesToDelete.size());
+      // System.out.println("imgPaths.size(): " + imgPaths.size());
+      if (imagesToDelete.size() != imgPaths.size()) {
+        List<String> notFoundImages = new ArrayList<>();
+        for (String path : imgPaths) {
+          if (imagesToDelete.stream().noneMatch(img -> img.getImgPath().equals(path))) {
+            notFoundImages.add(path);
+          }
+        }
+        return new ResponseEntity<>(
+            "Images not found: " + String.join(", ", notFoundImages), HttpStatus.NOT_FOUND);
+      }
+
+      productImageService.deleteImagesForProducts("thedrip", username, productIds, images);
+      return new ResponseEntity<>("Deleted images: " + String.join(", ", imgPaths), HttpStatus.OK);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }

@@ -63,15 +63,40 @@ public class ProductService {
   Logger logger = LoggerFactory.getLogger(this.getClass());
   // NOTE: Create
   @Transactional
-    public List<ProductModel> createProducts(List<ProductCreationDTO> productDataList) {
-        List<ProductModel> createdProducts = new ArrayList<>();
-        for (ProductCreationDTO productData : productDataList) {
-            ProductModel product = new ProductModel();
-            logger.info("Creating new product");
-            createdProducts.add(setProductDetails(product, productData.getProductName(), productData.getCategoryId(), productData.getUserId(), productData.getSeriesId(), productData.getProductPrice(), productData.getProductDescription(), productData.getProductStock(), productData.getProductSold(), productData.getProductSizes(), productData.getProductColors()));
-        }
-        return createdProducts;
+  public List<ProductModel> createProducts(List<ProductCreationDTO> productDataList) {
+    List<ProductModel> createdProducts = new ArrayList<>();
+    for (ProductCreationDTO productData : productDataList) {
+      String productName = productData.getProductName();
+
+      // Check if a product with this name already exists
+      Optional<ProductModel> existingProduct = productRepository.findByProductName(productName);
+
+      if (existingProduct.isPresent()) {
+        logger.warn("Product with name '{}' already exists. Skipping creation.", productName);
+        // You might want to handle this differently, e.g., throw an exception,
+        // update the existing product, or add a message to a list of errors.
+      } else {
+        // Product doesn't exist, so create it
+        ProductModel product = new ProductModel();
+        logger.info("Creating new product with name '{}'", productName);
+        ProductModel newProduct = setProductDetails(
+            product,
+            productName,
+            productData.getCategoryId(),
+            productData.getUserId(),
+            productData.getSeriesId(),
+            productData.getProductPrice(),
+            productData.getProductDescription(),
+            productData.getProductStock(),
+            productData.getProductSold(),
+            productData.getProductSizes(),
+            productData.getProductColors());
+        createdProducts.add(newProduct);
+      }
     }
+    productRepository.saveAll(createdProducts);
+    return createdProducts;
+  }
 
   // NOTE: Update
   @Transactional

@@ -260,18 +260,37 @@ public class ProductImageService {
     }
 
     @Transactional
-    public CompletableFuture<List<String>> deleteImageForProduct(
-      String bucket,
-      String sellerName,
-      Integer productId,
-      String imageName) {
-        CompletableFuture<List<String>> urls = deleteMultipleImages( "thedrip", sellerName+"/"+ productId+"/"+imageName);
-        if(urls.join() != null && !urls.join().isEmpty()){
-          List<ProductImageModel> imagesToDelete = productImageRepository.findByImgPathIn(urls.join());
-          productImageRepository.deleteAll(imagesToDelete);
+    public CompletableFuture<List<String>> deleteImagesForProducts(
+        String bucket, String sellerName, List<Integer> productIds, List<String> imageNames) {
+      List<String> imgPaths = new ArrayList<>();
+      for (int i = 0; i < productIds.size(); i++) {
+        imgPaths.add(sellerName + "/" + productIds.get(i) + "/" + imageNames.get(i));
+      }
+
+      List<CompletableFuture<List<String>>> deletionFutures = new ArrayList<>();
+      for (String imgPath : imgPaths) {
+        deletionFutures.add(deleteMultipleImages(bucket, imgPath));
+      }
+
+      return CompletableFuture.allOf(deletionFutures.toArray(new CompletableFuture[0]))
+        .thenApply(
+            v -> {
+              List<String> deletedPaths = new ArrayList<>();
+              for (CompletableFuture<List<String>> future : deletionFutures) {
+                List<String> result = future.join();
+                if (result != null) {
+                  deletedPaths.addAll(result);
+                }
+              }
+
+              if (!deletedPaths.isEmpty()) {
+                List<ProductImageModel> imagesToDelete =
+                  productImageRepository.findByImgPathIn(deletedPaths);
+                productImageRepository.deleteAll(imagesToDelete);
+              }
+              return deletedPaths;
+            });
         }
-        return urls;
-    }
 
     public CompletableFuture<List<String>> deleteImagesForProduct(String bucket, String sellerName, Integer productId) {
       CompletableFuture<List<String>> urls = deleteMultipleImages(bucket, sellerName + "/" + productId + "/");
