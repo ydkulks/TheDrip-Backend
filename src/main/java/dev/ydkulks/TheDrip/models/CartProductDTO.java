@@ -17,5 +17,6 @@ public class CartProductDTO {
   private String category;
   private String series;
   private String image;
+  private Integer price;
   // private Set<ProductImageModel> images;
 }

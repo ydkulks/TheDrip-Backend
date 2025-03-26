@@ -25,7 +25,8 @@ public interface CartMapper {
   @Mapping(source = "category.categoryName", target = "category")
   @Mapping(source = "series.seriesName", target = "series")
   // @Mapping(source = "images", target = "image", qualifiedByName = "mapFirstImage")
-  // @Mapping(source = "images", target = "images")
+  // @Mapping(source = "images", target = "image")
+  @Mapping(source = "productPrice", target = "price")
   CartProductDTO productModelToProductDTO(ProductModel productModel);
 
   // default String mapFirstImage(List<String> images) {
