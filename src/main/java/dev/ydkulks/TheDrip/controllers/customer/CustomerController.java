@@ -34,7 +34,6 @@ import dev.ydkulks.TheDrip.models.UserReviewsDTO;
 import dev.ydkulks.TheDrip.models.UserReviewsModel;
 import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
 import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
-import dev.ydkulks.TheDrip.repos.UserRepo;
 import dev.ydkulks.TheDrip.repos.UserReviewsRepository;
 import dev.ydkulks.TheDrip.services.CartService;
 import dev.ydkulks.TheDrip.services.ProductImageService;
@@ -169,7 +168,10 @@ public class CustomerController {
     try {
       Pageable pageable = PageRequest.of(page, size);
 
-      Page<CartItemsModel> cartItemsPage = cartService.getItems(userId, productName, sizeId, colorId, sortBy, sortDirection, pageable);
+      // Page<CartItemsModel> cartItemsPage = cartService.getItems(userId, productName, sizeId, colorId, sortBy, sortDirection, pageable);
+      Object[] itemsObj = cartService.getItems(userId, productName, sizeId, colorId, sortBy, sortDirection, pageable);
+      Page<CartItemsModel> cartItemsPage = (Page<CartItemsModel>) itemsObj[0];
+      double total = (double) itemsObj[1];
 
       List<CartItemsDTO> cartItemDTOs = cartItemsPage.getContent().stream()
         .map(cartItemModel -> {
@@ -210,6 +212,7 @@ public class CustomerController {
       CartResponseDTO response = new CartResponseDTO();
       response.setContent(cartItemDTOs);
       response.setPage(pageDTO);
+      response.setTotal(total);
 
       return new ResponseEntity<CartResponseDTO>(response, HttpStatus.OK);
     } catch (IllegalArgumentException e) {

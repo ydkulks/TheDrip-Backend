@@ -1,6 +1,7 @@
 package dev.ydkulks.TheDrip.services;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +95,8 @@ public class CartService {
   }
 
   @Transactional
-  public Page<CartItemsModel> getItems(
+  // public Page<CartItemsModel> getItems(
+  public Object[] getItems(
       Integer userId,
       String productName,
       Integer sizeId,
@@ -125,7 +127,8 @@ public class CartService {
     CartModel cart = cartRepository.findByUser(user);
 
     if (cart == null) {
-      return new PageImpl<>(Collections.emptyList(), pageable, 0);
+      // return new PageImpl<>(Collections.emptyList(), pageable, 0);
+      return new Object[]{Collections.emptyList(), 0.0};
     }
 
     Sort sort = null;
@@ -161,8 +164,20 @@ public class CartService {
       cartspec = cartspec.and(CartItemsSpecification.hasColor(color.getColor_name()));
     }
 
+    Page<CartItemsModel> cartItemsPage = cartItemsRepository.findAll(cartspec, sortedPageable);
+
+    List<CartItemsModel> allItems = cartItemsRepository.findAll(cartspec);
+    double total = allItems.stream()
+            .mapToDouble(item -> item.getProduct().getProductPrice() * item.getQuantity())
+            .sum();
+    // System.out.println("Cart total: " + total);
+    // Object[] result = new Object[] {
+    //   cartItemsRepository.findAll(cartspec, sortedPageable), total
+    // };
+
     // Retrieve cart items using the specification
-    return cartItemsRepository.findAll(cartspec, sortedPageable);
+    // return cartItemsRepository.findAll(cartspec, sortedPageable);
+    return new Object[]{cartItemsPage, total};
   }
 
   @Transactional

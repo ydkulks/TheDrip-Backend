@@ -10,4 +10,5 @@ import lombok.Setter;
 public class CartResponseDTO {
   private List<CartItemsDTO> content;
   private CartPageDTO page;
+  private double total;
 }
