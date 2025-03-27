@@ -1,6 +1,7 @@
 package dev.ydkulks.TheDrip.services;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,7 +38,7 @@ public class CartService {
   @Autowired private ProductColorsRepository productColorsRepository;
 
   @Transactional
-  public void addToOrUpdateCart(Integer userId, Integer productId, Integer quantity, String color, String size) {
+  public void createNewCartItem( Integer userId, Integer productId, Integer quantity, String color, String size) {
     UserModel user = userRepo.findById(userId)
       .orElseThrow(() -> new IllegalArgumentException("User not found"));
     ProductModel product = productRepository
@@ -51,7 +52,6 @@ public class CartService {
       cart.setUser(user);
       cart = cartRepository.save(cart);
     }
-
     // Find existing cart item for the product in the cart
     CartItemsModel cartItem = cartItemsRepository
       .findByCartAndProductAndSizeAndColor(cart, product, size, color);
@@ -63,9 +63,32 @@ public class CartService {
       cartItem.setQuantity(quantity);
       cartItem.setColor(color);
       cartItem.setSize(size);
-    } else {
-      // If the item exists, update the quantity
-      cartItem.setQuantity(cartItem.getQuantity() + quantity);
+    }
+    cartItemsRepository.save(cartItem);
+  }
+
+  @Transactional
+  public void updateCartItemQuantity( Integer userId, Integer productId, Integer newQuantity, String color, String size) {
+    UserModel user = userRepo.findById(userId)
+      .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    ProductModel product = productRepository
+      .findById(productId).orElseThrow(() ->
+          new IllegalArgumentException("Product not found"));
+
+    // Find existing cart for the user
+    CartModel cart = cartRepository.findByUser(user);
+    System.out.println("Cart exists? " + cart);
+    if (cart == null) {
+      cart = new CartModel();
+      cart.setUser(user);
+      cart = cartRepository.save(cart);
+    }
+
+    // Find existing cart item for the product in the cart
+    CartItemsModel cartItem = cartItemsRepository
+      .findByCartAndProductAndSizeAndColor(cart, product, size, color);
+    if (cartItem != null) {
+      cartItem.setQuantity(newQuantity);
     }
     cartItemsRepository.save(cartItem);
   }
@@ -144,6 +167,11 @@ public class CartService {
 
   @Transactional
   public void removeFromCart(Integer cartItemId) {
-    cartItemsRepository.deleteById(cartItemId);
+    Optional<CartItemsModel> item = cartItemsRepository.findById(cartItemId);
+    if (item != null ) {
+      cartItemsRepository.deleteById(cartItemId);
+    } else {
+      throw new RuntimeException("Failed to remove cart item number " + cartItemId);
+    }
   }
 }

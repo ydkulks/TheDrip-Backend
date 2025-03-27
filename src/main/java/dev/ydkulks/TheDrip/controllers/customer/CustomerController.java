@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -116,9 +117,37 @@ public class CustomerController {
         .orElseThrow(() -> new IllegalArgumentException("Invalid Color ID: " + size));
       String sizeName = sizeRecord.getSize_name();
 
-      cartService.addToOrUpdateCart(userId, productId, quantity, colorName, sizeName);
+      cartService.createNewCartItem(userId, productId, quantity, colorName, sizeName);
 
       return new ResponseEntity<>("Item added to cart successfully!", HttpStatus.CREATED);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>("Invalid arguments provided: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      return new ResponseEntity<>(
+          "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @PutMapping("/items") // More specific endpoint for adding items
+  public ResponseEntity<?> updateCartItem(
+      @RequestParam Integer userId,
+      @RequestParam Integer productId,
+      @RequestParam Integer quantity,
+      @RequestParam Integer color,
+      @RequestParam Integer size) {
+    try {
+
+      ProductColorsModel colorRecord = productColorsRepository.findById(color)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid Color ID: " + color));
+      String colorName = colorRecord.getColor_name();
+
+      ProductSizesModel sizeRecord = productSizesRepository.findById(size)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid Color ID: " + size));
+      String sizeName = sizeRecord.getSize_name();
+
+      cartService.updateCartItemQuantity(userId, productId, quantity, colorName, sizeName);
+
+      return new ResponseEntity<>("Item updated successfully!", HttpStatus.CREATED);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>("Invalid arguments provided: " + e.getMessage(), HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
