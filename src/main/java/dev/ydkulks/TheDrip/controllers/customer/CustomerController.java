@@ -8,12 +8,14 @@ import java.util.stream.Collectors;
 // import org.checkerframework.checker.index.qual.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,11 +31,15 @@ import dev.ydkulks.TheDrip.models.CartProductDTO;
 import dev.ydkulks.TheDrip.models.CartResponseDTO;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
+import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductSizesModel;
+import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.models.UserReviewsDTO;
 import dev.ydkulks.TheDrip.models.UserReviewsModel;
 import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
+import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
+import dev.ydkulks.TheDrip.repos.UserRepo;
 import dev.ydkulks.TheDrip.repos.UserReviewsRepository;
 import dev.ydkulks.TheDrip.services.CartService;
 import dev.ydkulks.TheDrip.services.ProductImageService;
@@ -49,19 +55,65 @@ public class CustomerController {
   @Autowired private ProductImageService productImageService;
   @Autowired private ProductColorsRepository productColorsRepository;
   @Autowired private ProductSizesRepository productSizesRepository;
+  @Autowired private ProductRepository productRepository;
+  @Autowired private UserRepo userRepo;
+
+  // Mapping method: UserReviewsModel -> UserReviewsDTO
+  private UserReviewsDTO convertToDto(UserReviewsModel review) {
+    UserReviewsDTO dto = new UserReviewsDTO();
+    dto.setUserId(review.getUser().getId());
+    dto.setUserName(review.getUser().getUsername());
+    dto.setProduct(review.getProduct().getProductId());
+    dto.setReview_title(review.getReviewTitle());
+    dto.setReview_text(review.getReviewText());
+    dto.setRating(review.getRating());
+    dto.setCreated(review.getCreated());
+    dto.setUpdated(review.getUpdated());
+    return dto;
+  }
+
+  @GetMapping("/review")
+  public ResponseEntity<?> getReview(
+      @RequestParam(required = false) Integer userId,
+      @RequestParam(required = false) Integer productId,
+      @RequestParam(required = false) String sortBy,
+      @RequestParam(required = false) String sortDirection,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+    try {
+      Pageable pageable = PageRequest.of(page, size);
+
+      UserModel user = (userId != null) ? userRepo.findById(userId).orElse(null) : null;
+      ProductModel product = (productId != null) ? productRepository.findById(productId).orElse(null) : null;
+
+      Page<UserReviewsModel> response = userReviewsService.getReview(user, product, sortBy, sortDirection, pageable);
+      List<UserReviewsDTO> reviewDTOs = response.getContent().stream()
+        .map(this::convertToDto) // Use a method to map each UserReviewsModel to UserReviewsDTO
+        .collect(Collectors.toList());
+
+      Page<UserReviewsDTO> pagesOfReviewDTO = new PageImpl<>(reviewDTOs, pageable, response.getTotalElements());
+      return new ResponseEntity<Page<UserReviewsDTO>>(pagesOfReviewDTO, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
   @PostMapping("/review")
   public ResponseEntity<?> createOrUpdate(@RequestBody UserReviewsDTO data) {
     try {
       UserReviewsModel response = userReviewsService.createOrUpdateReview(
-          data.getUser(),
+          data.getUserId(),
           data.getProduct(),
           data.getReview_title(),
           data.getReview_text(),
           data.getRating());
       UserReviewsDTO responseDTO = new UserReviewsDTO();
       if (response != null) {
-        responseDTO.setUser(data.getUser());
+        responseDTO.setUserId(data.getUserId());
+        responseDTO.setUserName(data.getUserName());
         responseDTO.setProduct(data.getProduct());
         responseDTO.setReview_title(data.getReview_title());
         responseDTO.setReview_text(data.getReview_text());

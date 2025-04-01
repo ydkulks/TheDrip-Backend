@@ -1,15 +1,18 @@
 package dev.ydkulks.TheDrip.controllers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +26,7 @@ import dev.ydkulks.TheDrip.models.ProductResponseDTO;
 import dev.ydkulks.TheDrip.models.ProductSeriesModel;
 import dev.ydkulks.TheDrip.models.ProductSizesModel;
 import dev.ydkulks.TheDrip.models.UserModel;
+import dev.ydkulks.TheDrip.models.UserReviewsDTO;
 import dev.ydkulks.TheDrip.models.UserReviewsModel;
 import dev.ydkulks.TheDrip.repos.ProductCategoriesRepository;
 import dev.ydkulks.TheDrip.repos.ProductColorsRepository;
@@ -135,27 +139,48 @@ public class ProductController {
     }
   }
 
-  @GetMapping("/reviews")
+  // Mapping method: UserReviewsModel -> UserReviewsDTO
+  private UserReviewsDTO convertToDto(UserReviewsModel review) {
+    UserReviewsDTO dto = new UserReviewsDTO();
+    dto.setUserId(review.getUser().getId());
+    dto.setUserName(review.getUser().getUsername());
+    dto.setProduct(review.getProduct().getProductId());
+    dto.setReview_title(review.getReviewTitle());
+    dto.setReview_text(review.getReviewText());
+    dto.setRating(review.getRating());
+    dto.setCreated(review.getCreated());
+    dto.setUpdated(review.getUpdated());
+    return dto;
+  }
+
+  @GetMapping("/reviews/{productId}")
   public ResponseEntity<?> getReviews(
-      @RequestParam(required = false) Integer userId,
-      @RequestParam(required = false) Integer productId,
+      @PathVariable Integer productId,
       @RequestParam(required = false) String sortBy,
       @RequestParam(required = false) String sortDirection,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
     try {
       Pageable pageable = PageRequest.of(page, size);
+      ProductModel product = productRepository.findById(productId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid Product ID: " + productId));
 
-      UserModel user = (userId != null) ? userRepo.findById(userId).orElse(null) : null;
-      ProductModel product = (productId != null) ? productRepository.findById(productId).orElse(null) : null;
+      Page<UserReviewsModel> response = userReviewsService.getProductReviews(product, sortBy, sortDirection, pageable);
 
-      Page<UserReviewsModel> response = userReviewsService.getReview(user, product, sortBy, sortDirection, pageable);
-      return new ResponseEntity<Page<UserReviewsModel>>(response, HttpStatus.OK);
+      List<UserReviewsDTO> reviewDTOs = response.getContent().stream()
+        .map(this::convertToDto) // Use a method to map each UserReviewsModel to UserReviewsDTO
+        .collect(Collectors.toList());
+
+      Page<UserReviewsDTO> pagesOfReviewDTO = new PageImpl<>(reviewDTOs, pageable, response.getTotalElements());
+
+      return new ResponseEntity<Page<UserReviewsDTO>>(pagesOfReviewDTO, HttpStatus.OK);
     } catch (IllegalArgumentException e) {
-      return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+      return new ResponseEntity<>(
+          "Invalid arguments provided.", HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
       e.printStackTrace();
-      return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(
+          "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

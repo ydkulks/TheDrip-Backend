@@ -91,4 +91,36 @@ public class UserReviewsService {
     Page<UserReviewsModel> reviews = userReviewsRepository.findAll(spec, sortedPageable);
     return new PageImpl<>(reviews.toList(), sortedPageable, reviews.getTotalElements());
   }
+
+  @Transactional
+  public Page<UserReviewsModel> getProductReviews(
+      // UserModel user,
+      ProductModel product,
+      String sortBy,
+      String sortDirection,
+      Pageable pageable
+      ){
+    Specification<UserReviewsModel> spec =
+        Specification.where(UserReviewsSpecification.hasProduct(product));
+        // .and(UserReviewsSpecification.hasUser(user));
+
+    Sort sort = null;
+    if (sortBy != null && !sortBy.isEmpty()) {
+      Sort.Direction direction =
+        sortDirection != null && sortDirection.equalsIgnoreCase("desc")
+        ? Sort.Direction.DESC
+        : Sort.Direction.ASC;
+      sort = Sort.by(direction, sortBy);
+    }
+
+    // Create a new Pageable object with the Sort information
+    Pageable sortedPageable = pageable;
+    if (sort != null) {
+      sortedPageable =
+        PageRequest.of(
+            pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
+    Page<UserReviewsModel> reviews = userReviewsRepository.findAll(spec, sortedPageable);
+    return new PageImpl<>(reviews.toList(), sortedPageable, reviews.getTotalElements());
+  }
 }
