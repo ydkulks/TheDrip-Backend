@@ -24,8 +24,12 @@
         - [x] Update
         - [x] Delete
         - [x] Different cart entry for product variants
-    - [ ] Order
-        - [ ] Stripe integration
+    - [ ] Checkout
+        - [x] Stripe integration
+        - [x] Discount (Promo Code)
+        - [x] Shipping rate
+        - [x] Tax rate
+        - [ ] Checkout multiple products at once
 - [x] Products
     - [x] Upload images
         - [x] Store S3 meta-data in DB
@@ -358,6 +362,16 @@ Open the app and create server and database before moving on with the next step.
         --header 'Authorization: Bearer {TOKEN}'
         ```
 
+    - **Checkout**: Make payment for the products.
+
+        ```sh
+        curl --location 'http://localhost:8080/api/stripe/create-checkout-session?productId=13&qty=1' \
+        --header 'Content-Type: application/x-www-form-urlencoded' \
+        --header 'Authorization: Bearer {TOKEN}' \
+        --data-urlencode 'successUrl=http://localhost:4242/success' \
+        --data-urlencode 'cancelUrl=http://localhost:4242/cancel'
+        ```
+
 ## 🧪 TDD
 > [!Tip]
 > Testing private methods in unit testing can break encapsulation as these methods
@@ -366,6 +380,9 @@ Open the app and create server and database before moving on with the next step.
 > public methods. Private methods impact the internal state or public method
 > outputs, which should be tested instead of the private methods themselves.
 > [🔗](https://dev.to/canro91/this-is-why-we-dont-test-private-methods-28ef?ref=dailydev)
+
+## 💰 Stripe
+Stripe is a payment gateway to handle payments.
 
 ## 🌐 Useful links
 - [Spring Initializer](https://start.spring.io)
@@ -379,3 +396,6 @@ Open the app and create server and database before moving on with the next step.
 - [JPA Entities](https://www.baeldung.com/jpa-entities)
 - [AWS SDK for Java](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
 - [Nonsense](https://nonsense.jp/)
+- [Stripe Docs](https://docs.stripe.com)
+- [Stripe Dashboard](https://dashboard.stripe.com)
+- [Stripe SDK Docs](https://stripe.dev/stripe-java/com/stripe)
