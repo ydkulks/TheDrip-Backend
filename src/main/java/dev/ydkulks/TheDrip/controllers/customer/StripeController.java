@@ -1,10 +1,12 @@
 package dev.ydkulks.TheDrip.controllers.customer;
 import com.stripe.Stripe;
-import com.stripe.model.PaymentLink.TaxIdCollection;
+import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 
+import dev.ydkulks.TheDrip.models.CheckoutProduct;
 import dev.ydkulks.TheDrip.models.ProductModel;
+import dev.ydkulks.TheDrip.models.CheckoutProduct.ProductItem;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
 import jakarta.annotation.PostConstruct;
 
@@ -34,14 +36,13 @@ public class StripeController {
 
   @PostMapping("/create-checkout-session")
   public ResponseEntity<String> createCheckoutSession(
-      @RequestParam Integer productId,
-      // TODO: Checkout for multiple products
-      // @RequestParam List<Integer> productId,
-      // @RequestParam List<Long> qty,
-      @RequestParam Long qty,
-      @RequestParam(value = "successUrl") String successUrl,
-      @RequestParam(value = "cancelUrl") String cancelUrl
-      ) {
+      @RequestBody CheckoutProduct data) throws StripeException {
+
+    List<SessionCreateParams.LineItem> lineItems = new ArrayList<>();
+
+    String successUrl = data.getSuccessUrl();
+    String cancelUrl = data.getCancelUrl();
+    List<ProductItem> products = data.getProducts();
 
     List<SessionCreateParams.ShippingOption> shippingOptionsList = new ArrayList<>();
     shippingOptionsList.add(SessionCreateParams.ShippingOption.builder()
@@ -54,34 +55,40 @@ public class StripeController {
     String indiaTaxRateId = "txr_1R9merQhqoBLs2E5gqhOoNjT";
 
     try {
-      ProductModel product = (productId != null) ? productRepository.findById(productId).orElse(null) : null;
-      Double productPrice = product.getProductPrice() * 100;
+      for (ProductItem productData : products) {
+        Integer productId = productData.getProductId();
+        Long qty = productData.getQty();
+
+        ProductModel product = productRepository.findById(productId).orElse(null);
+        if (product != null) {
+          Double productPrice = product.getProductPrice() * 100;
+
+          SessionCreateParams.LineItem lineItem = SessionCreateParams.LineItem.builder()
+            .addAllTaxRate(List.of(indiaTaxRateId))
+            .setQuantity(qty)
+            .setPriceData(
+                SessionCreateParams.LineItem.PriceData.builder()
+                .setCurrency("usd")
+                .setUnitAmount(productPrice.longValue())
+                .setProductData(
+                  SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                  .setName(product.getProductName())
+                  .build())
+                .build())
+            .build();
+
+          lineItems.add(lineItem);
+        }
+      }
 
       SessionCreateParams params = SessionCreateParams.builder()
         .setMode(SessionCreateParams.Mode.PAYMENT)
         .setSuccessUrl(successUrl)
         .setCancelUrl(cancelUrl)
-        // .setAutomaticTax(
-        //     SessionCreateParams.AutomaticTax.builder()
-        //     .setEnabled(true
-        //       ).build())
+        .addAllLineItem(lineItems) // Add all created line items
         .addAllShippingOption(shippingOptionsList)
         .setAllowPromotionCodes(true)
-        .addLineItem(
-            SessionCreateParams.LineItem.builder()
-            // .addTaxRate(indiaTaxRateId)
-            .addAllTaxRate(List.of(indiaTaxRateId))
-            .setQuantity(qty)
-            .setPriceData(
-              SessionCreateParams.LineItem.PriceData.builder()
-              .setCurrency("usd")
-              .setUnitAmount(productPrice.longValue()) // $20.00 (in cents)
-              .setProductData(
-                SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                .setName(product.getProductName())
-                .build())
-              .build())
-            .build())
+        .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
         .build();
 
       Session session = Session.create(params);
