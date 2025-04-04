@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import dev.ydkulks.TheDrip.models.CartItemsModel;
 import dev.ydkulks.TheDrip.models.CartItemsSpecification;
 import dev.ydkulks.TheDrip.models.CartModel;
+import dev.ydkulks.TheDrip.models.CartResponseWithTotalDTO;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.ProductSizesModel;
@@ -95,8 +96,7 @@ public class CartService {
   }
 
   @Transactional
-  // public Page<CartItemsModel> getItems(
-  public Object[] getItems(
+  public CartResponseWithTotalDTO getItems(
       Integer userId,
       String productName,
       Integer sizeId,
@@ -128,7 +128,8 @@ public class CartService {
 
     if (cart == null) {
       // return new PageImpl<>(Collections.emptyList(), pageable, 0);
-      return new Object[]{Collections.emptyList(), 0.0};
+      // return new CartResponseWithTotalDTO(Collections.emptyList(), 0.0);
+      return null;
     }
 
     Sort sort = null;
@@ -170,14 +171,8 @@ public class CartService {
     double total = allItems.stream()
             .mapToDouble(item -> item.getProduct().getProductPrice() * item.getQuantity())
             .sum();
-    // System.out.println("Cart total: " + total);
-    // Object[] result = new Object[] {
-    //   cartItemsRepository.findAll(cartspec, sortedPageable), total
-    // };
 
-    // Retrieve cart items using the specification
-    // return cartItemsRepository.findAll(cartspec, sortedPageable);
-    return new Object[]{cartItemsPage, total};
+    return new CartResponseWithTotalDTO(cartItemsPage, total);
   }
 
   @Transactional

@@ -27,6 +27,7 @@ import dev.ydkulks.TheDrip.models.CartMapper;
 import dev.ydkulks.TheDrip.models.CartPageDTO;
 import dev.ydkulks.TheDrip.models.CartProductDTO;
 import dev.ydkulks.TheDrip.models.CartResponseDTO;
+import dev.ydkulks.TheDrip.models.CartResponseWithTotalDTO;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
@@ -218,10 +219,17 @@ public class CustomerController {
     try {
       Pageable pageable = PageRequest.of(page, size);
 
-      // Page<CartItemsModel> cartItemsPage = cartService.getItems(userId, productName, sizeId, colorId, sortBy, sortDirection, pageable);
-      Object[] itemsObj = cartService.getItems(userId, productName, sizeId, colorId, sortBy, sortDirection, pageable);
-      Page<CartItemsModel> cartItemsPage = (Page<CartItemsModel>) itemsObj[0];
-      double total = (double) itemsObj[1];
+      CartResponseWithTotalDTO itemsObj = cartService.getItems(
+          userId,
+          productName,
+          sizeId,
+          colorId,
+          sortBy,
+          sortDirection,
+          pageable
+        );
+      Page<CartItemsModel> cartItemsPage = itemsObj.getCartItemsPage();
+      double total = itemsObj.getTotal();
 
       List<CartItemsDTO> cartItemDTOs = cartItemsPage.getContent().stream()
         .map(cartItemModel -> {
