@@ -3,6 +3,7 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.param.checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry;
 
 import dev.ydkulks.TheDrip.models.CheckoutProduct;
 import dev.ydkulks.TheDrip.models.ProductModel;
@@ -81,6 +82,10 @@ public class StripeController {
         }
       }
 
+      List<AllowedCountry> countries = new ArrayList<>();
+        countries.add(SessionCreateParams.ShippingAddressCollection.AllowedCountry.IN);
+        countries.add(SessionCreateParams.ShippingAddressCollection.AllowedCountry.US);
+        countries.add(SessionCreateParams.ShippingAddressCollection.AllowedCountry.JP);
       SessionCreateParams params = SessionCreateParams.builder()
         .setMode(SessionCreateParams.Mode.PAYMENT)
         .setSuccessUrl(successUrl)
@@ -88,6 +93,9 @@ public class StripeController {
         .addAllLineItem(lineItems) // Add all created line items
         .addAllShippingOption(shippingOptionsList)
         .setAllowPromotionCodes(true)
+        .setShippingAddressCollection(
+            SessionCreateParams.ShippingAddressCollection.builder()
+            .addAllAllowedCountry(countries).build())
         .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
         .build();
 

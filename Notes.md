@@ -24,12 +24,12 @@
         - [x] Update
         - [x] Delete
         - [x] Different cart entry for product variants
-    - [ ] Checkout
+    - [x] Checkout
         - [x] Stripe integration
         - [x] Discount (Promo Code)
         - [x] Shipping rate
         - [x] Tax rate
-        - [ ] Checkout multiple products at once
+        - [x] Checkout multiple products at once
 - [x] Products
     - [x] Upload images
         - [x] Store S3 meta-data in DB
@@ -365,11 +365,23 @@ Open the app and create server and database before moving on with the next step.
     - **Checkout**: Make payment for the products.
 
         ```sh
-        curl --location 'http://localhost:8080/api/stripe/create-checkout-session?productId=13&qty=1' \
-        --header 'Content-Type: application/x-www-form-urlencoded' \
+        curl --location 'http://localhost:8080/api/stripe/create-checkout-session' \
+        --header 'Content-Type: application/json' \
         --header 'Authorization: Bearer {TOKEN}' \
-        --data-urlencode 'successUrl=http://localhost:4242/success' \
-        --data-urlencode 'cancelUrl=http://localhost:4242/cancel'
+        --data '{
+            "successUrl": "http://localhost:5173",
+            "cancelUrl": "http://localhost:5173",
+            "products": [
+                {
+                    "productId": 1,
+                    "qty": 2
+                },
+                {
+                    "productId": 13,
+                    "qty": 1
+                }
+            ]
+        }'
         ```
 
 ## 🧪 TDD
