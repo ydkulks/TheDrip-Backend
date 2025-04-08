@@ -15,6 +15,7 @@ public class CheckoutProduct {
   private String successUrl;
   private String cancelUrl;
   private List<ProductItem> products;
+  private List<Integer> cartItemsId;
 
   @Getter
   @Setter

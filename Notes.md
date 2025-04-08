@@ -30,7 +30,7 @@
         - [x] Shipping rate
         - [x] Tax rate
         - [x] Checkout multiple products at once
-- [x] Products
+- [ ] Products
     - [x] Upload images
         - [x] Store S3 meta-data in DB
         - [x] [S3](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)
