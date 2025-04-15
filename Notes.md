@@ -9,9 +9,8 @@
 - [x] Role based auth for API endpoints
 - [ ] User profile
     - [x] Verify if user exists before user creation
-    - [ ] Get user data
-    - [ ] Update user data
-    - [ ] Password reset
+    - [x] Get user data
+    - [x] Password reset
     - [ ] Delete user data
     - [x] User reviews
         - [x] Create

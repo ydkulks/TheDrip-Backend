@@ -73,7 +73,8 @@ public class StripeController {
 
           // Save the updated product back to the database
           productRepository.save(product);
-          // TODO: Delete from cart
+
+          // Delete from cart
           // cartService.removeFromCart(data.getCartItemsId());
           List<Integer> cartItemIds = data.getCartItemsId();
           if (cartItemIds != null && !cartItemIds.isEmpty()) {
