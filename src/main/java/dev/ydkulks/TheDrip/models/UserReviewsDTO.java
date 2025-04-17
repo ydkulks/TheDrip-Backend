@@ -16,4 +16,18 @@ public class UserReviewsDTO {
     private Integer rating;
     private Timestamp created;
     private Timestamp updated;
+
+    @Getter
+    @Setter
+    public static class MyReviewsDTO {
+      private Integer userId;
+      private String userName;
+      private Integer productId;
+      private String productName;
+      private String review_title;
+      private String review_text;
+      private Integer rating;
+      private Timestamp created;
+      private Timestamp updated;
+    }
 }

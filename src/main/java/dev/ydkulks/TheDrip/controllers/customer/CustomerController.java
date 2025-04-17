@@ -57,48 +57,66 @@ public class CustomerController {
   @Autowired private ProductRepository productRepository;
   @Autowired private UserRepo userRepo;
 
-  // Mapping method: UserReviewsModel -> UserReviewsDTO
-  private UserReviewsDTO convertToDto(UserReviewsModel review) {
-    UserReviewsDTO dto = new UserReviewsDTO();
-    dto.setUserId(review.getUser().getId());
-    dto.setUserName(review.getUser().getUsername());
-    dto.setProduct(review.getProduct().getProductId());
-    dto.setReview_title(review.getReviewTitle());
-    dto.setReview_text(review.getReviewText());
-    dto.setRating(review.getRating());
-    dto.setCreated(review.getCreated());
-    dto.setUpdated(review.getUpdated());
-    return dto;
-  }
-
   @GetMapping("/review")
-  public ResponseEntity<?> getReview(
-      @RequestParam(required = false) Integer userId,
-      @RequestParam(required = false) Integer productId,
-      @RequestParam(required = false) String sortBy,
-      @RequestParam(required = false) String sortDirection,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size) {
-    try {
-      Pageable pageable = PageRequest.of(page, size);
+public ResponseEntity<?> getReview(
+    @RequestParam Integer userId,
+    @RequestParam(required = false) Integer productId,
+    @RequestParam(required = false) String sortBy,
+    @RequestParam(required = false) String sortDirection,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size) {
+  try {
+    Pageable pageable = PageRequest.of(page, size);
 
-      UserModel user = (userId != null) ? userRepo.findById(userId).orElse(null) : null;
-      ProductModel product = (productId != null) ? productRepository.findById(productId).orElse(null) : null;
+    UserModel user = (userId != null) ? userRepo.findById(userId).orElse(null) : null;
+    ProductModel product =
+        (productId != null) ? productRepository.findById(productId).orElse(null) : null;
 
-      Page<UserReviewsModel> response = userReviewsService.getReview(user, product, sortBy, sortDirection, pageable);
-      List<UserReviewsDTO> reviewDTOs = response.getContent().stream()
-        .map(this::convertToDto) // Use a method to map each UserReviewsModel to UserReviewsDTO
-        .collect(Collectors.toList());
+    Page<UserReviewsModel> response =
+        userReviewsService.getReview(user, product, sortBy, sortDirection, pageable);
+    List<UserReviewsDTO.MyReviewsDTO> reviewDTOs =
+        response.getContent().stream()
+            .map(
+                review ->
+                    convertToMyReviewsDTO(
+                        review, productRepository)) // Use a method to map each UserReviewsModel
+            // to UserReviewsDTO.MyReviewsDTO
+            .collect(Collectors.toList());
 
-      Page<UserReviewsDTO> pagesOfReviewDTO = new PageImpl<>(reviewDTOs, pageable, response.getTotalElements());
-      return new ResponseEntity<Page<UserReviewsDTO>>(pagesOfReviewDTO, HttpStatus.OK);
-    } catch (IllegalArgumentException e) {
-      return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    Page<UserReviewsDTO.MyReviewsDTO> pagesOfMyReviewDTO =
+        new PageImpl<>(reviewDTOs, pageable, response.getTotalElements());
+    return new ResponseEntity<>(pagesOfMyReviewDTO, HttpStatus.OK);
+  } catch (IllegalArgumentException e) {
+    return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+  } catch (Exception e) {
+    e.printStackTrace();
+    return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
   }
+}
+
+private UserReviewsDTO.MyReviewsDTO convertToMyReviewsDTO(
+    UserReviewsModel review, ProductRepository productRepository) {
+  UserReviewsDTO.MyReviewsDTO dto = new UserReviewsDTO.MyReviewsDTO();
+  dto.setUserId(review.getUser().getId());
+  dto.setUserName(review.getUser().getUsername());
+
+  ProductModel product = productRepository.findById(review.getProduct().getProductId()).orElse(null);
+  if (product != null) {
+    dto.setProductId(product.getProductId());
+    dto.setProductName(product.getProductName());
+  } else {
+    dto.setProductId(null);
+    dto.setProductName("Product Not Found");
+  }
+
+  dto.setReview_title(review.getReviewTitle());
+  dto.setReview_text(review.getReviewText());
+  dto.setRating(review.getRating());
+  dto.setCreated(review.getCreated());
+  dto.setUpdated(review.getUpdated());
+  return dto;
+}
+
 
   @PostMapping("/review")
   public ResponseEntity<?> createOrUpdate(@RequestBody UserReviewsDTO data) {
