@@ -7,6 +7,7 @@ import dev.ydkulks.TheDrip.models.ProductModel;
 import dev.ydkulks.TheDrip.models.CheckoutProduct.ProductItem;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
 import dev.ydkulks.TheDrip.services.CartService;
+import dev.ydkulks.TheDrip.services.CustomerOrderService;
 import dev.ydkulks.TheDrip.services.StripeService;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class StripeController {
   @Autowired ProductRepository productRepository;
   @Autowired StripeService stripeService;
   @Autowired CartService cartService;
+  @Autowired CustomerOrderService customerOrderService;
 
   @PostMapping("/create-checkout-session")
   public ResponseEntity<?> createCheckoutSession(
@@ -74,9 +76,11 @@ public class StripeController {
           // Save the updated product back to the database
           productRepository.save(product);
 
+          List<Integer> cartItemIds = data.getCartItemsId();
+
+          customerOrderService.createOrder(cartItemIds.get(0), productId, quantity, product.getProductPrice());
           // Delete from cart
           // cartService.removeFromCart(data.getCartItemsId());
-          List<Integer> cartItemIds = data.getCartItemsId();
           if (cartItemIds != null && !cartItemIds.isEmpty()) {
             for (Integer cartItemId : cartItemIds) {
               // cartService.removeFromCart(cartItemId);

@@ -129,6 +129,17 @@ CREATE TABLE IF NOT EXISTS cart_items (
 	UNIQUE (cart_id, product_id, color, size)
 );
 
+CREATE TABLE IF NOT EXISTS customer_orders (
+	user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	product_id INT NOT NULL REFERENCES product(product_id),
+	quantity INT NOT NULL,
+	order_amount MONEY,
+	order_status VARCHAR(50) DEFAULT 'pending',
+	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY (user_id, product_id)
+);
+
 /*
 -- NOTE: Example insert queries
 INSERT INTO categories (category_name) VALUES

@@ -2,6 +2,7 @@ package dev.ydkulks.TheDrip.controllers.customer;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +30,8 @@ import dev.ydkulks.TheDrip.models.CartPageDTO;
 import dev.ydkulks.TheDrip.models.CartProductDTO;
 import dev.ydkulks.TheDrip.models.CartResponseDTO;
 import dev.ydkulks.TheDrip.models.CartResponseWithTotalDTO;
+import dev.ydkulks.TheDrip.models.CustomerOrder;
+import dev.ydkulks.TheDrip.models.CustomerOrderDTO;
 import dev.ydkulks.TheDrip.models.ProductColorsModel;
 import dev.ydkulks.TheDrip.models.ProductImageModel;
 import dev.ydkulks.TheDrip.models.ProductModel;
@@ -41,6 +45,7 @@ import dev.ydkulks.TheDrip.repos.ProductSizesRepository;
 import dev.ydkulks.TheDrip.repos.UserRepo;
 import dev.ydkulks.TheDrip.repos.UserReviewsRepository;
 import dev.ydkulks.TheDrip.services.CartService;
+import dev.ydkulks.TheDrip.services.CustomerOrderService;
 import dev.ydkulks.TheDrip.services.ProductImageService;
 import dev.ydkulks.TheDrip.services.UserReviewsService;
 
@@ -56,6 +61,7 @@ public class CustomerController {
   @Autowired private ProductSizesRepository productSizesRepository;
   @Autowired private ProductRepository productRepository;
   @Autowired private UserRepo userRepo;
+  @Autowired CustomerOrderService customerOrderService;
 
   @GetMapping("/review")
 public ResponseEntity<?> getReview(
@@ -304,6 +310,24 @@ private UserReviewsDTO.MyReviewsDTO convertToMyReviewsDTO(
     try{
       cartService.removeFromCart(cartItemId);
       return new ResponseEntity<>("Removed cart item of ID: " + cartItemId, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GetMapping("/myorders/{userId}")
+  public ResponseEntity<?> getMyOrders(@PathVariable Integer userId,
+    @RequestParam(required = false) String sortBy,
+    @RequestParam(required = false) String sortDirection,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size) {
+    try{
+      Pageable pageable = PageRequest.of(page, size);
+      Page<CustomerOrderDTO> response = customerOrderService.getCustomerOrderDto(userId, sortBy, sortDirection, pageable);
+      return new ResponseEntity<Page<CustomerOrderDTO>>(response, HttpStatus.OK);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>("Invalid arguments provided.", HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
