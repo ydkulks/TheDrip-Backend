@@ -29,6 +29,11 @@
         - [x] Shipping rate
         - [x] Tax rate
         - [x] Checkout multiple products at once
+    - [ ] Customer Order Status
+        - [x] Order's CRUD Service
+        - [x] Get Orders (Controller)
+        - [ ] Update status automatically (Out of Scope)
+        - [ ] Delete after delivery (Out of Scope)
 - [ ] Products
     - [x] Upload images
         - [x] Store S3 meta-data in DB

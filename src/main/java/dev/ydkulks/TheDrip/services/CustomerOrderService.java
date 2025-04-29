@@ -19,6 +19,8 @@ import dev.ydkulks.TheDrip.repos.CartItemsRepository;
 import dev.ydkulks.TheDrip.repos.CartRepository;
 import dev.ydkulks.TheDrip.repos.CustomerOrderRepository;
 import dev.ydkulks.TheDrip.repos.ProductRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -34,7 +36,8 @@ public class CustomerOrderService {
   // @Autowired CustomerOrderService customerOrderService;
   @Autowired ProductRepository productRepository;
 
-  public CustomerOrder saveCustomerOrder(CustomerOrder customerOrder) {
+  @Transactional
+  private CustomerOrder saveCustomerOrder(CustomerOrder customerOrder) {
     Optional<CustomerOrder> existingOrder = customerOrderRepository
       .findById(
           new CustomerOrderId(customerOrder.getUserId(), customerOrder.getProductId())
@@ -50,11 +53,13 @@ public class CustomerOrderService {
     return customerOrderRepository.save(customerOrder);
   }
 
-  public Optional<CustomerOrder> getCustomerOrder(Integer userId, Integer productId) {
-    return customerOrderRepository.findById(new CustomerOrderId(userId, productId));
-  }
+  // @Transactional
+  // public Optional<CustomerOrder> getCustomerOrder(Integer userId, Integer productId) {
+  //   return customerOrderRepository.findById(new CustomerOrderId(userId, productId));
+  // }
 
-  public Page<CustomerOrder> getCustomerOrder(
+  @Transactional
+  private Page<CustomerOrder> getCustomerOrder(
       Integer userId,
       String sortBy,
       String sortDirection,
@@ -79,16 +84,20 @@ public class CustomerOrderService {
     return customerOrderRepository.findByUserId(userId, sortedPageable);
   }
 
+  // NOTE: DELETE
+  @Transactional
   public void deleteCustomerOrder(Integer userId, Integer productId) {
     customerOrderRepository.deleteById(new CustomerOrderId(userId, productId));
   }
   
+  // NOTE: CREATE
+  @Transactional
   public ResponseEntity<?> createOrder(Integer cartItemId, Integer productId, Long quantity, Double productPrice) {
     // Integer firstCartItemId = cartItemIds.get(0); // Ensure list isn't empty first.
     CartItemsModel firstCartItem = cartItemsRepository.findById(cartItemId)
-      .orElseThrow(() -> new IllegalArgumentException("Cart item not found with ID: " + cartItemId));
+      .orElseThrow(() -> new EntityNotFoundException("Cart item not found with ID: " + cartItemId));
     CartModel firstCart = cartRepository.findById(firstCartItem.getCart().getCart_id())
-      .orElseThrow(() -> new IllegalArgumentException("Cart not found with ID: " + firstCartItem.getCart().getCart_id()));
+      .orElseThrow(() -> new EntityNotFoundException("Cart not found with ID: " + firstCartItem.getCart().getCart_id()));
 
     if (firstCartItem == null || firstCart.getUser() == null) {
       return ResponseEntity.badRequest()
@@ -114,9 +123,11 @@ public class CustomerOrderService {
   private ProductModel getProductDetails(Integer productId) {
     return productRepository
         .findById(productId)
-        .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
+        .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
   }
 
+  // NOTE: GET
+  @Transactional
   public Page<CustomerOrderDTO> getCustomerOrderDto(
       Integer userId, String sortBy, String sortDirection, Pageable pageable) {
     Page<CustomerOrder> customerOrderPage =
@@ -143,5 +154,20 @@ public class CustomerOrderService {
 
     return new PageImpl<>(
         customerOrderDtoList, customerOrderPage.getPageable(), customerOrderPage.getTotalElements());
+  }
+
+  // NOTE: Update
+  @Transactional
+  public void updateCustomerOrderStatus(Integer userId, Integer productId, String status) {
+    CustomerOrder order = customerOrderRepository.findById(new CustomerOrderId(userId, productId)).orElse(null);
+
+    if (order != null) {
+      order.setOrderStatus(status);
+      customerOrderRepository.save(order);
+    } else {
+      // Handle the case where the order was not found
+      throw new EntityNotFoundException(
+          "Order not found for userId: " + userId + " and productId: " + productId); // Or handle however you want
+    }
   }
 }
