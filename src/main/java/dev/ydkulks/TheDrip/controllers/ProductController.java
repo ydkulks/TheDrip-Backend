@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -127,6 +128,26 @@ public class ProductController {
           productService.getProductsByFilters(
               colors, sizes, inStock, categories, user, series, minPrice, maxPrice, sortBy, sortDirection, searchTerm, imgCount, pageable);
 
+      return new ResponseEntity<Page<ProductResponseDTO>>(products, HttpStatus.OK);
+
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(
+          "Invalid arguments provided.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity<>(
+          "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // Trending
+  @GetMapping("/products/trending")
+  public ResponseEntity<?> getTrending(
+      @PageableDefault(sort="productSold",direction=Sort.Direction.DESC,size=5,page=0) Pageable pageable
+      ) {
+    try{
+
+      Page<ProductResponseDTO> products = productService.getTrendingProducts(pageable);
       return new ResponseEntity<Page<ProductResponseDTO>>(products, HttpStatus.OK);
 
     } catch (IllegalArgumentException e) {

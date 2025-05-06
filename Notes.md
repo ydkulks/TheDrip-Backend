@@ -59,6 +59,9 @@
     - [x] Delete product
     - [ ] Add product rating
     - [ ] Product Discount
+        - [ ] On Sale products
+    - [x] Trending products
+    - [ ] New Arrival products
 - [ ] Feedback form
 - [ ] Jaspersoft report
 

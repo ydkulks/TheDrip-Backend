@@ -370,6 +370,30 @@ public class ProductService {
     return dto;
   }
 
+  @Transactional
+  public Page<ProductResponseDTO> getTrendingProducts(Pageable pageable) {
+    Page<ProductModel> products = productRepository.findByOrderByProductSoldDesc(pageable);
+    List<ProductResponseDTO> productResponseDTOList = products.getContent().stream()
+      .map(product -> {
+        List<String> s3Paths = product.getImages()
+          .stream()
+          .map(ProductImageModel::getImgPath)
+          .collect(Collectors.toList());
+
+        List<String> imageUrls = s3Paths
+          .stream()
+          .limit(1)
+          .map(path -> productImageService.getPresignedImageURL("thedrip", path))
+          .collect(Collectors.toList());
+
+        return new ProductResponseDTO(Optional.of(product), imageUrls);
+      })
+    .collect(Collectors.toList());
+
+    // return CompletableFuture.completedFuture(productResponseDTOs);
+    return new PageImpl<>(productResponseDTOList, pageable, products.getTotalPages());
+  }
+
   // NOTE: Delete
   @Transactional
   public void deleteProducts(List<Integer> productIds) {

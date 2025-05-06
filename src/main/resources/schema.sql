@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS customer_orders (
 -- NOTE: Example insert queries
 INSERT INTO categories (category_name) VALUES
 	('short_sleeve_tees'), ('long_sleeve_tees'), ('button_down_shirt'), ('hoodies'),
-	('cargos'), ('shorts'), ('sweat_pants'), ('tops'), ('bottoms'), ('bomber_jackets');
+	('cargos'), ('shorts'), ('sweat_pants'), ('hats'), ('accessories'), ('bomber_jackets');
 
 INSERT INTO product_sizes (size_name) VALUES
 	('small'),('medium'),('large'),('extra_large'),('double_extra_large');
