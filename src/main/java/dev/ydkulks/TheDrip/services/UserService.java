@@ -1,11 +1,13 @@
 package dev.ydkulks.TheDrip.services;
 
+import java.security.InvalidParameterException;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import dev.ydkulks.TheDrip.controllers.UserController.DeleteUserRequest;
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.repos.UserRepo;
 import jakarta.transaction.Transactional;
@@ -45,6 +47,19 @@ public class UserService {
 
     user.setPassword(encoder.encode(newPassword));
     repo.save(user);
+  }
+
+  @Transactional
+  public void deleteUser(Integer userId, DeleteUserRequest password) {
+    UserModel user = repo.findById(userId)
+      .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
+
+    // Compare encrypted password before deleting user
+    if (password != null && encoder.matches(password.getPassword(), user.getPassword())) {
+      repo.delete(user); // deletes the user
+    } else {
+      throw new IllegalArgumentException("Invalid password for user ID: " + userId);
+    }
   }
 
   public static class UserAlreadyExistsException extends RuntimeException {

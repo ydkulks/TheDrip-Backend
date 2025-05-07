@@ -1,11 +1,13 @@
 package dev.ydkulks.TheDrip.controllers;
 
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.services.LoginService;
 import dev.ydkulks.TheDrip.services.UserService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @RestController
 @RequestMapping("/api")
@@ -67,6 +73,27 @@ public class UserController {
       return ResponseEntity.ok("Password reset successfully");
     } catch (UserService.UserNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+  }
+
+  @Getter
+  @Setter
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class DeleteUserRequest {
+    private String password;
+  }
+  @DeleteMapping("/{id}/delete")
+  public ResponseEntity<?> deleteUser(@PathVariable Integer id, @RequestBody DeleteUserRequest password) {
+    try {
+      userService.deleteUser(id, password); // The service method doesn't return the deleted user
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT); // Successful deletion, no content to return
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); // Specific error message
+    } catch (Exception e) {
+      // Log the error for debugging purposes
+      e.printStackTrace();
+      return new ResponseEntity<>("Failed to delete user", HttpStatus.INTERNAL_SERVER_ERROR); // Generic error
     }
   }
 

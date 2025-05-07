@@ -11,7 +11,7 @@
     - [x] Verify if user exists before user creation
     - [x] Get user data
     - [x] Password reset
-    - [ ] Delete user data
+    - [x] Delete user data
     - [x] User reviews
         - [x] Create
         - [x] Get
@@ -34,6 +34,10 @@
         - [x] Get Orders (Controller)
         - [ ] Update status automatically (Out of Scope)
         - [ ] Delete after delivery (Out of Scope)
+    - [ ] Admin
+        - [ ] Manage User accounts
+            - [ ] Create user accounts with temp password
+        - [ ] Manage Products
 - [ ] Products
     - [x] Upload images
         - [x] Store S3 meta-data in DB
@@ -62,6 +66,7 @@
         - [ ] On Sale products
     - [x] Trending products
     - [ ] New Arrival products
+    - [ ] Dashboard
 - [ ] Feedback form
 - [ ] Jaspersoft report
 
@@ -337,24 +342,6 @@ Open the app and create server and database before moving on with the next step.
         --header 'Authorization: Bearer {TOKEN}'
         ```
 
-    - **Reviews**: Leave a review for a product
-
-        ```sh
-        # Create or update the review
-        curl --location 'http://localhost:8080/customer/review' \
-        --header 'Content-Type: application/json' \
-        --header 'Authorization: Bearer {TOKEN}' \
-        --data '{
-            "user":3,
-            "product":7,
-            "review_title":"test review title",
-            "review_text":"This is a test review for this cargo sweatpants.",
-            "rating": 4
-        }'
-        # Get paginated reviews with filters and sort
-        curl --location 'http://localhost:8080/api/reviews?userId=2&productId=7&sortBy=user&sortDirection=asc&page=0&size=10'
-        ```
-
     - **Cart**: Manage products that you are interested to buy in cart.
 
         ```sh
@@ -390,6 +377,24 @@ Open the app and create server and database before moving on with the next step.
             ]
         }'
         ```
+
+4. **Reviews**: Leave a review for a product
+
+    ```sh
+    # Create or update the review
+    curl --location 'http://localhost:8080/customer/review' \
+    --header 'Content-Type: application/json' \
+    --header 'Authorization: Bearer {TOKEN}' \
+    --data '{
+        "user":3,
+        "product":7,
+        "review_title":"test review title",
+        "review_text":"This is a test review for this cargo sweatpants.",
+        "rating": 4
+    }'
+    # Get paginated reviews with filters and sort
+    curl --location 'http://localhost:8080/api/reviews?userId=2&productId=7&sortBy=user&sortDirection=asc&page=0&size=10'
+    ```
 
 ## 🧪 TDD
 > [!Tip]
