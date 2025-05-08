@@ -19,6 +19,7 @@ public class ProductResponseDTO {
     private String seriesName;
     private String categoryName;
     private String sellerName;
+    private Integer sellerId;
     private List<String> sizes;
     private List<String> colors;
     private List<String> images; // Presigned URLs
@@ -33,6 +34,7 @@ public class ProductResponseDTO {
         this.seriesName = product.get().getSeries().getSeriesName();
         this.categoryName = product.get().getCategory().getCategoryName();
         this.sellerName = product.get().getUser().getUsername();
+        this.sellerId = product.get().getUser().getId();
         this.sizes = product.get().getSizes()
           .stream()
           .map(ProductSizesModel::getSize_name)
@@ -54,6 +56,7 @@ public class ProductResponseDTO {
         this.seriesName = product.getSeries().getSeriesName();
         this.categoryName = product.getCategory().getCategoryName();
         this.sellerName = product.getUser().getUsername();
+        this.sellerId = product.getUser().getId();
         this.sizes = product.getSizes()
           .stream()
           .map(ProductSizesModel::getSize_name)

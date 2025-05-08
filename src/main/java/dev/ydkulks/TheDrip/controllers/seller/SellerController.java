@@ -435,17 +435,6 @@ public class SellerController {
     }
   }
 
-  // TODO: Move this to ADMIN Controller
-  @DeleteMapping("/all/product/image")
-  public ResponseEntity<?> deleteImages() {
-    try {
-      productImageService.deleteAllImages("thedrip");
-      return new ResponseEntity<>("Deleted: All images of all products", HttpStatus.OK);
-    } catch (IllegalArgumentException e) {
-      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
-  }
-
   @DeleteMapping("/product")
   public ResponseEntity<?> deleteProductById(@RequestParam(required = true) List<Integer> productId) {
     try {
