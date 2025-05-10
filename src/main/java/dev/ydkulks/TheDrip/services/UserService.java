@@ -1,6 +1,8 @@
 package dev.ydkulks.TheDrip.services;
 
 import java.security.InvalidParameterException;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import dev.ydkulks.TheDrip.controllers.UserController.DeleteUserRequest;
+import dev.ydkulks.TheDrip.controllers.UserController.ResetPasswordRequest;
 import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.repos.UserRepo;
 import jakarta.transaction.Transactional;
@@ -36,17 +39,26 @@ public class UserService {
     return repo.findById(id);
   }
 
+  // Compare oldPassword with existing password before password reset
   @Transactional
-  public void resetPassword(String username, String newPassword) {
-    UserModel user = repo.findByUsername(username);
+  public void resetPassword(ResetPasswordRequest data) {
+    UserModel user = repo.findByUsername(data.getUsername());
     if (user == null) {
       throw new UserNotFoundException(
-        "User with username '" + username + "' not found"
+        "User with username '" + data.getUsername() + "' not found"
       );
     }
-
-    user.setPassword(encoder.encode(newPassword));
-    repo.save(user);
+    // Compare encrypted password before password reset
+    if (data.getOldPassword() != null && encoder.matches(data.getOldPassword(), user.getPassword())) {
+      user.setPassword(encoder.encode(data.getNewPassword()));
+      // Flag to reset temp password set by admin during admin user creation
+      if (user.getPasswordResetRequired().equals(true)) {
+        user.setPasswordResetRequired(false);
+      }
+      repo.save(user);
+    } else {
+      throw new IllegalArgumentException("Invalid password for user ID: " + user.getId());
+    }
   }
 
   @Transactional
@@ -74,5 +86,34 @@ public class UserService {
     public UserNotFoundException(String message) {
       super(message);
     }
+  }
+
+  @Transactional
+  public UserModel createAdminUser(UserModel user) {
+    if (repo.findByUsername(user.getUsername()) != null) {
+      throw new UserAlreadyExistsException(
+          "User with username '" + user.getUsername() + "' already exists"
+          );
+    }
+
+    String tempPassword = generateTemporaryPassword();
+    user.setPassword(encoder.encode(tempPassword));
+    System.out.println(tempPassword);
+
+    user.setPasswordResetRequired(true);
+    // TODO: Send email
+    //  Here you would typically send an email to the user
+    //  with the temporary password.  For example:
+    //  emailService.sendTemporaryPassword(user.getUsername(), tempPassword);
+
+    return repo.save(user);
+  }
+
+  // Helper method to generate a random password
+  private String generateTemporaryPassword() {
+    SecureRandom random = new SecureRandom();
+    byte[] passwordBytes = new byte[16]; // 16 bytes = 128 bits
+    random.nextBytes(passwordBytes);
+    return Base64.getEncoder().encodeToString(passwordBytes);
   }
 }

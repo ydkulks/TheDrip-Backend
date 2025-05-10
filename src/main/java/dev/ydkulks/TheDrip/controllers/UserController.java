@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import dev.ydkulks.TheDrip.models.UserModel;
 import dev.ydkulks.TheDrip.services.LoginService;
 import dev.ydkulks.TheDrip.services.UserService;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -63,14 +65,18 @@ public class UserController {
       .orElse(ResponseEntity.notFound().build());
   }
 
-  @PostMapping("/reset-password")
-  public ResponseEntity<String> resetPassword(
-    @RequestParam String username,
-    @RequestParam String newPassword
-  ) {
+  @Data
+  public static class ResetPasswordRequest {
+    private String username;
+    private String oldPassword;
+    private String newPassword;
+  }
+  @PutMapping("/reset-password")
+  public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest data) {
     try {
-      userService.resetPassword(username, newPassword);
-      return ResponseEntity.ok("Password reset successfully");
+      userService.resetPassword(data);
+      // return ResponseEntity.ok("Password reset successfully");
+      return new ResponseEntity<>(HttpStatus.OK);
     } catch (UserService.UserNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }

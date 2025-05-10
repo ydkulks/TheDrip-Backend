@@ -3,6 +3,7 @@ package dev.ydkulks.TheDrip.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -38,7 +39,8 @@ public class SecurityConfigurer {
         .authorizeHttpRequests(request -> request
             .requestMatchers("/api/**").permitAll() // No basic auth for matched APIs
             .requestMatchers("/admin/**").hasAuthority("Admin") // Admin only
-            .requestMatchers("/customer/**").hasAnyAuthority("Customer","Admin")
+            .requestMatchers("/customer/**").hasAnyAuthority("Customer") // Customer only
+            .requestMatchers(HttpMethod.POST,"/seller/products").hasAnyAuthority("Seller") // Product creation
             .requestMatchers("/seller/**").hasAnyAuthority("Seller","Admin")
             .anyRequest().authenticated()) // Enable basic auth for APIs
         .formLogin(Customizer.withDefaults()) // Enable login form in browser

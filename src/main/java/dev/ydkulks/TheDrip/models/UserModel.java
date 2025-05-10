@@ -43,6 +43,10 @@ public class UserModel {
   @JsonProperty(access = JsonProperty.Access.READ_WRITE)
   private String role;
 
+  @JsonProperty(access = JsonProperty.Access.READ_WRITE)
+  @Column(name = "is_pwd_reset_required")
+  private Boolean passwordResetRequired;
+
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @Column(updatable = false, insertable = false)
   @CreationTimestamp

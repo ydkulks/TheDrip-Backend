@@ -33,12 +33,13 @@ public class JWTService {
     }
   }
 
-  public String generateToken(String email, String username, String role, Integer id) {
+  public String generateToken(String email, String username, String role, Integer id, Boolean pwdResetRequired) {
 
     Map<String, Object> claims = new HashMap<>();
     claims.put("role", role);
     claims.put("email", email);
     claims.put("id", id);
+    claims.put("passwordResetRequired", pwdResetRequired);
     return Jwts.builder()
       .claims()
       .add(claims)

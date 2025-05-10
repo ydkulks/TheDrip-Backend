@@ -31,7 +31,8 @@ public class LoginService {
         userData.getEmail(),
         user.getUsername(),
         userData.getRole(),
-        userData.getId()
+        userData.getId(),
+        userData.getPasswordResetRequired()
       );
     return "Fail";
   }
