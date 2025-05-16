@@ -1,9 +1,13 @@
 package dev.ydkulks.TheDrip.controllers.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +39,15 @@ public class AdminController {
     try {
       UserModel createdUser = userService.createAdminUser(userData);
       return new ResponseEntity<>(createdUser, HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @GetMapping("/users")
+  public ResponseEntity<Page<UserModel>> getAllUsers(@PageableDefault(size=10,page=0) Pageable pageable) {
+    try {
+      return new ResponseEntity<>(userService.getAllUsers(pageable), HttpStatus.OK);
     } catch (IllegalArgumentException e) {
       return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }

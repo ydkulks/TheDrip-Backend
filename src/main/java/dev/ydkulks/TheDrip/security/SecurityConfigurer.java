@@ -35,13 +35,17 @@ public class SecurityConfigurer {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
+        .cors()
+        .and()
         .csrf(customizer -> customizer.disable()) // Disable all security
         .authorizeHttpRequests(request -> request
             .requestMatchers("/api/**").permitAll() // No basic auth for matched APIs
             .requestMatchers("/admin/**").hasAuthority("Admin") // Admin only
             .requestMatchers("/customer/**").hasAnyAuthority("Customer") // Customer only
-            .requestMatchers(HttpMethod.POST,"/seller/products").hasAnyAuthority("Seller") // Product creation
+            .requestMatchers("/seller/**").hasAnyAuthority("Seller") // Product creation
             .requestMatchers("/seller/**").hasAnyAuthority("Seller","Admin")
+            // .requestMatchers(HttpMethod.OPTIONS,"/seller/**").hasAnyAuthority("Seller","Admin")
+            // .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll() // No basic auth for matched APIs
             .anyRequest().authenticated()) // Enable basic auth for APIs
         .formLogin(Customizer.withDefaults()) // Enable login form in browser
         .httpBasic(Customizer.withDefaults()) // Handle basic auth

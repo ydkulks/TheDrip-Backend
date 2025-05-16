@@ -1,11 +1,12 @@
 package dev.ydkulks.TheDrip.services;
 
-import java.security.InvalidParameterException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,15 @@ public class UserService {
   @Transactional
   public Optional<UserModel> getUserById(Integer id) {
     return repo.findById(id);
+  }
+
+  @Transactional
+  public Page<UserModel> getAllUsers(Pageable pageable) {
+    Page<UserModel> users = repo.findAll(pageable);
+    if (users == null) {
+      throw new UserNotFoundException("Users not found");
+    }
+    return users;
   }
 
   // Compare oldPassword with existing password before password reset
