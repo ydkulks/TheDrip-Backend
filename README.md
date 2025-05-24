@@ -1,5 +1,14 @@
-# TheDrip - ザ・ドリップ
-Lowkey Anime, High-Key Fashion
+<h1 align="center">TheDrip - ザ・ドリップ</h1>
+<p align="center">Low-Key Anime, High-Key Fashion</p>
+
+"TheDrip" is a novel e-commerce platform targeting the young, fashion-forward audience, a demographic that has grown up with and appreciates anime culture. By focusing on subtle, "low-key" anime-inspired streetwear, "TheDrip" bridges the gap between mainstream fashion and niche anime merchandise.
+
+## Demo
+<https://github.com/user-attachments/assets/1b482eeb-531d-471f-8c34-4d588308b3c0>
+
+<https://github.com/user-attachments/assets/e4a17d3e-7a1c-4fb4-95a4-d7e21983897b>
+
+<https://github.com/user-attachments/assets/14f70fe8-6e8b-468d-a581-b51070d14570>
 
 ## Problem Statement - E-Commerce Web Application
 The problem statement requires you to create a full-stack e-commerce web application using React for the front-end, Spring Boot for the back-end, and any RDBMS (Relational Database Management System) for data persistence.
@@ -24,18 +33,30 @@ The application will cater to three different types of users: Customers, Sellers
 3. **View Products**: Sellers can view all the products available in the system, similar to customers.
 4. **No Ordering**: Sellers cannot place orders within the application.
 
-## Important Instructions:
-1. Use separate packages for different layers (controller, service, etc.).
-2. Design the UI as per your preference, including colors, buttons, images, and icons.
-3. Provide necessary error messages for validation.
-4. Fetch login/logout details from the database or use third-party authentication tools like Okta.
-5. Use proper APIs to perform operations.
-6. Follow naming conventions in your code.
-7. Choose any RDBMS for data storage (MySQL, H2, Oracle, etc.).
-8. Create the necessary tables to implement the required functionalities, ensuring proper normalization and ACID properties. Provide a schema diagram of all the tables in a PDF format.
-9. You can add additional functionalities such as searching, sorting, pagination, etc., to your application.
+## Technologies Used
+1. [Front-end](https://github.com/ydkulks/TheDrip)
+    - React.js
+    - TailwindCSS
+    - ShadCN UI
+    - Yup
+    - Framer Motion
+    - Vercel
+1. [Back-end](https://github.com/ydkulks/TheDrip-Backend)
+    - Spring Boot
+        - Gradle
+    - JWT (JSON Web Token)
+    - PostgreSQL
+    - Stripe
+3. Development Tools and Workflow
+    - Neovim(btw)
+    - Git & Github
+    - Excalidraw
+    - Postman & Bruno
 
-> [!NOTE]
-> The instructions provide an overview of the required functionalities and 
-> guidelines for implementation. You would need to dive into the specifics of 
-> each functionality and design the application accordingly.
+## Architecture Overview
+- System Architecture
+![Architecture](https://github.com/user-attachments/assets/be846f0b-26d9-4bb8-bfc2-a3c49c777807)
+- Stripe
+![Stripe](https://github.com/user-attachments/assets/eff45cee-3ac3-442a-882b-78405e16fdb0)
+- Database Schema
+![Schema](https://github.com/user-attachments/assets/d472b66f-ee68-41f1-af00-5bf29b6dbf39)
